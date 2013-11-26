@@ -178,22 +178,22 @@
 <body>
     <form id="form1" runat="server">
     <div class="header">
-<div class="main">
-  <div class="logo_bg"> <%--<a href="#"><img src="images/logo.jpg" width="286" height="88" alt="" border="0" /></a>--%></div>
-  <h1><a href="userhome.aspx" style="border:none; text-decoration:none; outline:none;"><img src="images/product_logo.png" border="0" alt="" /></a></h1>
-</div>
-</div>
+        <div class="main">
+          <div class="logo_bg"> <%--<a href="#"><img src="images/logo.jpg" width="286" height="88" alt="" border="0" /></a>--%></div>
+          <h1><a href="userhome.aspx" style="border:none; text-decoration:none; outline:none;"><img src="images/product_logo.png" border="0" alt="" /></a></h1>
+        </div>
+    </div>
     <div>
-        <asp:ScriptManager ID="ScriptManager1" runat="server">
+    <asp:ScriptManager ID="ScriptManager1" runat="server">
     </asp:ScriptManager>
     <%--For Session Expired Start--%>
     <div id="ExtendSessionLifeBox2" style=" width:100%; z-index:10000; height:100%; opacity:.2; filter:alpha(opacity=20); background:#660066; display:none;">
        </div>
     <asp:Panel ID="ExtendSessionLifeBox" runat="server" style="height:100px; z-index:10001; width:250px; background-color:#660066; padding:20px; color:#fff; border:solid 1px #666; display:none; position:absolute;">
-   <div style=" width:100%; float:left">
-  <asp:Label ID="ExtendSessionLifePrompt" runat="server" Text="Your session is going to expire in 10 minutes. Would you like to extend your Session for another 60 minutes?"></asp:Label>
-  </div>
-  <div style=" width:100%; float:left">
+    <div style=" width:100%; float:left">
+    <asp:Label ID="ExtendSessionLifePrompt" runat="server" Text="Your session is going to expire in 10 minutes. Would you like to extend your Session for another 60 minutes?"></asp:Label>
+    </div>
+  <div style="width:100%; float:left">
   <div id="countDown"></div>
   </div>
   <div style=" width:100%; float:left; padding-top:20px;">
@@ -226,9 +226,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -265,9 +264,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -300,6 +298,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>

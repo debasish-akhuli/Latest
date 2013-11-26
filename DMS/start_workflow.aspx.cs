@@ -178,22 +178,14 @@ namespace DMS
                                 result = ObjClassStoreProc.StartDefaultWFLogDtl(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), DateTime.Now, ds01.Tables[0].Rows[i]["duration"].ToString(), DateTime.Now, Session["CompCode"].ToString());
                                 // Insert the Log for versioning of the file Start
                                 //con.Open();
-                                if (Request.QueryString["NewFile"] != null)
+                                if(Request.QueryString["FormType"].ToString()=="eForm")
                                 {
-                                    result = ObjClassStoreProc.WFDocVersionInsert(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), Session["TemplateUUID"].ToString(), "", Session["CompCode"].ToString());
-                                    if (Convert.ToInt32(result) > 0)
-                                    {
-
-                                    }
-                                    result = ObjClassStoreProc.WFDocVersionUpdate(Session["WFLogId"].ToString(), 1, Session["TemplateUUID"].ToString(), Session["TemplateUUID"].ToString(), Session["CompCode"].ToString());
-                                    if (Convert.ToInt32(result) > 0)
-                                    {
-
-                                    }
-                                    cmd = new SqlCommand("update WFDocVersion set ActualDocUUID='" + Session["TemplateUUID"].ToString() + "' where WFLogID='" + Session["WFLogId"].ToString() + "' and StepNo>'1'", con);
+                                    result = ObjClassStoreProc.WFDocVersionInsert(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), Request.QueryString["DocUUID"].ToString(), "", Session["CompCode"].ToString());
+                                    result = ObjClassStoreProc.WFDocVersionUpdate(Session["WFLogId"].ToString(), 1, Request.QueryString["DocUUID"].ToString(), Request.QueryString["DocUUID"].ToString(), Session["CompCode"].ToString());
+                                    cmd = new SqlCommand("update WFDocVersion set ActualDocUUID='" + Request.QueryString["DocUUID"].ToString() + "' where WFLogID='" + Session["WFLogId"].ToString() + "' and StepNo>'1'", con);
                                     cmd.ExecuteNonQuery();
                                     DataSet dsV01 = new DataSet();
-                                    cmd = new SqlCommand("select * from WFDoc where WFLogID='" + Session["WFLogId"].ToString() + "' and DocUUID='" + Session["TemplateUUID"].ToString() + "'", con);
+                                    cmd = new SqlCommand("select * from WFDoc where WFLogID='" + Session["WFLogId"].ToString() + "' and DocUUID='" + Request.QueryString["DocUUID"].ToString() + "'", con);
                                     SqlDataAdapter adapterV01 = new SqlDataAdapter(cmd);
                                     adapterV01.Fill(dsV01);
                                     if (dsV01.Tables[0].Rows.Count > 0)
@@ -202,43 +194,58 @@ namespace DMS
                                     }
                                     else
                                     {
-                                        cmd = new SqlCommand("insert into WFDoc(WFLogID,DocUUID,CompCode) values('" + Session["WFLogId"].ToString() + "','" + Session["TemplateUUID"].ToString() + "','" + Session["CompCode"].ToString() + "')", con);
+                                        cmd = new SqlCommand("insert into WFDoc(WFLogID,DocUUID,CompCode) values('" + Session["WFLogId"].ToString() + "','" + Request.QueryString["DocUUID"].ToString() + "','" + Session["CompCode"].ToString() + "')", con);
                                         cmd.ExecuteNonQuery();
                                     }
-                                    //cmd = new SqlCommand("insert into WFDocVersion(WFLogID,StepNo,ActualDocUUID,NewDocUUID) values('" + Obj_DocMast.WFLogID + "','" + Obj_DocMast.StepNo + "','" + Session["TemplateUUID"].ToString() + "','')", con);
-                                    //cmd.ExecuteNonQuery();
-                                    //cmd = new SqlCommand("update WFDocVersion set NewDocUUID='" + Session["WFDocUUId"].ToString() + "' where WFLogID='" + Obj_DocMast.WFLogID + "' and StepNo='1' and ActualDocUUID='" + Session["TemplateUUID"].ToString() + "'", con);
-                                    //cmd.ExecuteNonQuery();
                                 }
                                 else
                                 {
-                                    result = ObjClassStoreProc.WFDocVersionInsert(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), Session["SelDocUUID"].ToString(), "", Session["CompCode"].ToString());
-                                    if (Convert.ToInt32(result) > 0)
+                                    if (Request.QueryString["NewFile"] != null)
                                     {
+                                        result = ObjClassStoreProc.WFDocVersionInsert(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), Session["TemplateUUID"].ToString(), "", Session["CompCode"].ToString());
+                                        result = ObjClassStoreProc.WFDocVersionUpdate(Session["WFLogId"].ToString(), 1, Session["TemplateUUID"].ToString(), Session["TemplateUUID"].ToString(), Session["CompCode"].ToString());
+                                        cmd = new SqlCommand("update WFDocVersion set ActualDocUUID='" + Session["TemplateUUID"].ToString() + "' where WFLogID='" + Session["WFLogId"].ToString() + "' and StepNo>'1'", con);
+                                        cmd.ExecuteNonQuery();
+                                        DataSet dsV01 = new DataSet();
+                                        cmd = new SqlCommand("select * from WFDoc where WFLogID='" + Session["WFLogId"].ToString() + "' and DocUUID='" + Session["TemplateUUID"].ToString() + "'", con);
+                                        SqlDataAdapter adapterV01 = new SqlDataAdapter(cmd);
+                                        adapterV01.Fill(dsV01);
+                                        if (dsV01.Tables[0].Rows.Count > 0)
+                                        {
 
-                                    }
-                                    result = ObjClassStoreProc.WFDocVersionUpdate(Session["WFLogId"].ToString(), 1, Session["SelDocUUID"].ToString(), Session["SelDocUUID"].ToString(), Session["CompCode"].ToString());
-                                    if (Convert.ToInt32(result) > 0)
-                                    {
-
-                                    }
-                                    DataSet dsV01 = new DataSet();
-                                    cmd = new SqlCommand("select * from WFDoc where WFLogID='" + Session["WFLogId"].ToString() + "' and DocUUID='" + Session["SelDocUUID"].ToString() + "'", con);
-                                    SqlDataAdapter adapterV01 = new SqlDataAdapter(cmd);
-                                    adapterV01.Fill(dsV01);
-                                    if (dsV01.Tables[0].Rows.Count > 0)
-                                    {
-
+                                        }
+                                        else
+                                        {
+                                            cmd = new SqlCommand("insert into WFDoc(WFLogID,DocUUID,CompCode) values('" + Session["WFLogId"].ToString() + "','" + Session["TemplateUUID"].ToString() + "','" + Session["CompCode"].ToString() + "')", con);
+                                            cmd.ExecuteNonQuery();
+                                        }
+                                        //cmd = new SqlCommand("insert into WFDocVersion(WFLogID,StepNo,ActualDocUUID,NewDocUUID) values('" + Obj_DocMast.WFLogID + "','" + Obj_DocMast.StepNo + "','" + Session["TemplateUUID"].ToString() + "','')", con);
+                                        //cmd.ExecuteNonQuery();
+                                        //cmd = new SqlCommand("update WFDocVersion set NewDocUUID='" + Session["WFDocUUId"].ToString() + "' where WFLogID='" + Obj_DocMast.WFLogID + "' and StepNo='1' and ActualDocUUID='" + Session["TemplateUUID"].ToString() + "'", con);
+                                        //cmd.ExecuteNonQuery();
                                     }
                                     else
                                     {
-                                        cmd = new SqlCommand("insert into WFDoc(WFLogID,DocUUID,CompCode) values('" + Session["WFLogId"].ToString() + "','" + Session["SelDocUUID"].ToString() + "','" + Session["CompCode"].ToString() + "')", con);
-                                        cmd.ExecuteNonQuery();
+                                        result = ObjClassStoreProc.WFDocVersionInsert(Session["WFLogId"].ToString(), Convert.ToInt16(ds01.Tables[0].Rows[i]["step_no"]), Session["SelDocUUID"].ToString(), "", Session["CompCode"].ToString());
+                                        result = ObjClassStoreProc.WFDocVersionUpdate(Session["WFLogId"].ToString(), 1, Session["SelDocUUID"].ToString(), Session["SelDocUUID"].ToString(), Session["CompCode"].ToString());
+                                        DataSet dsV01 = new DataSet();
+                                        cmd = new SqlCommand("select * from WFDoc where WFLogID='" + Session["WFLogId"].ToString() + "' and DocUUID='" + Session["SelDocUUID"].ToString() + "'", con);
+                                        SqlDataAdapter adapterV01 = new SqlDataAdapter(cmd);
+                                        adapterV01.Fill(dsV01);
+                                        if (dsV01.Tables[0].Rows.Count > 0)
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            cmd = new SqlCommand("insert into WFDoc(WFLogID,DocUUID,CompCode) values('" + Session["WFLogId"].ToString() + "','" + Session["SelDocUUID"].ToString() + "','" + Session["CompCode"].ToString() + "')", con);
+                                            cmd.ExecuteNonQuery();
+                                        }
+                                        //cmd = new SqlCommand("insert into WFDocVersion(WFLogID,StepNo,ActualDocUUID,NewDocUUID) values('" + Obj_DocMast.WFLogID + "','" + Obj_DocMast.StepNo + "','" + Session["WFDocUUId"].ToString() + "','')", con);
+                                        //cmd.ExecuteNonQuery();
+                                        //cmd = new SqlCommand("update WFDocVersion set NewDocUUID='" + Session["WFDocUUId"].ToString() + "' where WFLogID='" + Obj_DocMast.WFLogID + "' and StepNo='1' and ActualDocUUID='" + Session["WFDocUUId"].ToString() + "'", con);
+                                        //cmd.ExecuteNonQuery();
                                     }
-                                    //cmd = new SqlCommand("insert into WFDocVersion(WFLogID,StepNo,ActualDocUUID,NewDocUUID) values('" + Obj_DocMast.WFLogID + "','" + Obj_DocMast.StepNo + "','" + Session["WFDocUUId"].ToString() + "','')", con);
-                                    //cmd.ExecuteNonQuery();
-                                    //cmd = new SqlCommand("update WFDocVersion set NewDocUUID='" + Session["WFDocUUId"].ToString() + "' where WFLogID='" + Obj_DocMast.WFLogID + "' and StepNo='1' and ActualDocUUID='" + Session["WFDocUUId"].ToString() + "'", con);
-                                    //cmd.ExecuteNonQuery();
                                 }
                                 //con.Close();
                                 // Insert the Log for versioning of the file End

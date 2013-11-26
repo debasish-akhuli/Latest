@@ -10,6 +10,10 @@ using System.Collections;
 using System.Net;
 using System.Text;
 using System.IO;
+using DMS.UTILITY;
+using DMS.BAL;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 #region Using the Namespaces of Alfresco and the Webservices
 /// Alfresco is an another project where the Webservices are defined. We just need to use those defined Webservice References and
 /// then we can get the methods for those Webservices.
@@ -23,8 +27,6 @@ using Alfresco.ActionWebService;
 using Alfresco.ClassificationWebService;
 using Alfresco.AuthenticationWebService;
 using Alfresco.AccessControlWebService;
-using DMS.UTILITY;
-using DMS.BAL;
 #endregion
 
 namespace DMS
@@ -189,7 +191,27 @@ namespace DMS
 
                 if (eventTarget2 != String.Empty && eventTarget2 == "callPostBack5")
                 {
-                    if (eventArgument2 != String.Empty && eventArgument2 == "OpenDoc")
+                    if (eventArgument2 != String.Empty && eventArgument2 == "eFormProcess")
+                    {
+                        ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                        DataSet ds01 = new DataSet();
+                        ds01.Reset();
+                        ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(hfSelDocID.Value), Session["CompCode"].ToString());
+                        string DocExtension = "";
+                        if (ds01.Tables[0].Rows.Count > 0)
+                        {
+                            DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                        }
+                        if (DocExtension == ".pdf")
+                        {
+                            ViewDoc(Session["SelDocUUID"].ToString());
+                        }
+                        else
+                        {
+                            Response.Redirect("eFormOpening.aspx?DocID=" + hfSelDocID.Value, false);
+                        }
+                    }
+                    else if (eventArgument2 != String.Empty && eventArgument2 == "OpenDoc")
                     {
                         ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
                         DataSet ds01 = new DataSet();
@@ -200,7 +222,25 @@ namespace DMS
                         {
                             Session["VSDocName"] = ds01.Tables[0].Rows[0][1].ToString();
                             Session["SelDocUUID"] = ds01.Tables[0].Rows[0][4].ToString();
-                            ViewDoc(Session["SelDocUUID"].ToString());
+                            string FormType = "";
+                            FormType = ds01.Tables[0].Rows[0][27].ToString();
+                            if (FormType == "eForm")
+                            {
+                                string DocExtension = "";
+                                DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                                if (DocExtension == ".pdf")
+                                {
+                                    ViewDoc(Session["SelDocUUID"].ToString());
+                                }
+                                else
+                                {
+                                    Response.Redirect("eFormOpening.aspx?DocID=" + hfSelDocID.Value, false);
+                                }
+                            }
+                            else
+                            {
+                                ViewDoc(Session["SelDocUUID"].ToString());
+                            }
                         }
                     }
                     else if (eventArgument2 != String.Empty && eventArgument2 == "DownldDoc")
@@ -211,7 +251,25 @@ namespace DMS
                         ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(hfSelDocID.Value), Session["CompCode"].ToString());
                         if (ds01.Tables[0].Rows.Count>0)
                         {
-                            DownldDoc(ds01.Tables[0].Rows[0][4].ToString(), ds01.Tables[0].Rows[0][1].ToString());
+                            string FormType = "";
+                            FormType = ds01.Tables[0].Rows[0][27].ToString();
+                            if (FormType == "eForm")
+                            {
+                                string DocExtension = "";
+                                DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                                if (DocExtension == ".pdf")
+                                {
+                                    DownldDoc(ds01.Tables[0].Rows[0][4].ToString(), ds01.Tables[0].Rows[0][1].ToString());
+                                }
+                                else
+                                {
+                                    Response.Redirect("eFormOpening.aspx?DocID=" + hfSelDocID.Value, false);
+                                }
+                            }
+                            else
+                            {
+                                DownldDoc(ds01.Tables[0].Rows[0][4].ToString(), ds01.Tables[0].Rows[0][1].ToString());
+                            }
                         }
                     }
 
@@ -589,7 +647,7 @@ namespace DMS
                             Session["SelDocName"] = Session["VSDocName"].ToString();
                             hfSelDocStat.Value = ds01.Tables[0].Rows[0][18].ToString();
                             hfCheckedOutBy.Value = ds01.Tables[0].Rows[0][21].ToString();
-                            ////For Full Name of the User
+                            //For Full Name of the User
                             ds001.Reset();
                             ds001 = ObjClassStoreProc.FullNamePassingUserID(hfCheckedOutBy.Value);
                             if (ds001.Tables[0].Rows.Count > 0)
@@ -602,7 +660,7 @@ namespace DMS
                             string LicenseKey = "";
                             string ServerIPAddress = "";
                             string DomainName = "";
-                            //// Fetch ServerConfig Details Start
+                            // Fetch ServerConfig Details Start
                             DataSet ds_01 = new DataSet();
                             ds_01 = ObjClassStoreProc.SelectServerConfig(Session["CompCode"].ToString());
                             if (ds_01.Tables[0].Rows.Count > 0)
@@ -643,16 +701,35 @@ namespace DMS
                     {
                         string DocID = ((DataRowView)e.Row.DataItem)["doc_id"].ToString();
                         string DocName = ((DataRowView)e.Row.DataItem)["doc_name"].ToString();
-                        int start = DocName.LastIndexOf(".") + 1;
-                        int length = DocName.Length - start;
-                        string fileNameExt = DocName.Substring(start, length);
-                        if (fileNameExt == "pdf")
+                        string FormType = "";
+
+                        ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                        DataSet ds01 = new DataSet();
+                        ds01.Reset();
+                        ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(DocID), Session["CompCode"].ToString());
+
+                        if (ds01.Tables[0].Rows.Count > 0)
                         {
-                            e.Row.Attributes.Add("ondblclick", "Javascript: rowDblClick(" + DocID + ");");
+                            FormType = ds01.Tables[0].Rows[0][27].ToString();
+                        }
+
+                        if (FormType == "eForm")
+                        {
+                            e.Row.Attributes.Add("ondblclick", "Javascript: eFormProcess(" + DocID + ");");
                         }
                         else
                         {
-                            e.Row.Attributes.Add("ondblclick", "Javascript: DocDownld(" + DocID + ");");
+                            int start = DocName.LastIndexOf(".") + 1;
+                            int length = DocName.Length - start;
+                            string fileNameExt = DocName.Substring(start, length);
+                            if (fileNameExt == "pdf")
+                            {
+                                e.Row.Attributes.Add("ondblclick", "Javascript: rowDblClick(" + DocID + ");");
+                            }
+                            else
+                            {
+                                e.Row.Attributes.Add("ondblclick", "Javascript: DocDownld(" + DocID + ");");
+                            }
                         }
                     }
                 }
@@ -690,26 +767,34 @@ namespace DMS
                         throw new Exception("This Document is Checked Out by " + hfCheckedOutByFullName.Value);
                     }
                 }
-                string DocName = Session["VSDocName"].ToString();
-                int start = DocName.LastIndexOf(".") + 1;
-                int length = DocName.Length - start;
-                string fileNameExt = DocName.Substring(start, length);
-                if (fileNameExt == "pdf")
+                ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                DataSet ds01 = new DataSet();
+                ds01.Reset();
+                ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(Session["VSDoc"].ToString()), Session["CompCode"].ToString());
+                if (ds01.Tables[0].Rows.Count > 0)
                 {
-                    ViewDoc(Session["SelDocUUID"].ToString());
-                }
-                else
-                {
-                    ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
-                    DataSet ds01 = new DataSet();
-                    ds01.Reset();
-                    ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(Session["VSDoc"].ToString()), Session["CompCode"].ToString());
-                    if (ds01.Tables[0].Rows.Count > 0)
+                    string FormType = "";
+                    FormType = ds01.Tables[0].Rows[0][27].ToString();
+                    if (FormType == "eForm")
                     {
-                        DownldDoc(ds01.Tables[0].Rows[0][4].ToString(), ds01.Tables[0].Rows[0][1].ToString());
+                        Response.Redirect("eFormOpening.aspx?DocID=" + Session["VSDoc"].ToString(), false);
+                    }
+                    else
+                    {
+                        string DocName = Session["VSDocName"].ToString();
+                        int start = DocName.LastIndexOf(".") + 1;
+                        int length = DocName.Length - start;
+                        string fileNameExt = DocName.Substring(start, length);
+                        if (fileNameExt == "pdf")
+                        {
+                            ViewDoc(Session["SelDocUUID"].ToString());
+                        }
+                        else
+                        {
+                            DownldDoc(ds01.Tables[0].Rows[0][4].ToString(), ds01.Tables[0].Rows[0][1].ToString());
+                        }
                     }
                 }
-                
             }
             catch (Exception ex)
             {
@@ -1145,6 +1230,8 @@ namespace DMS
                     /// Check the doc is already there or not start
                     DataSet ds0001 = new DataSet();
                     DataSet ds0003 = new DataSet();
+                    string mPDF = "";
+
                     ds0003.Reset();
                     ds0003 = ObjClassStoreProc.DocDetailsPassingDocIDANDFldUUID(ViewState["SelDocID"].ToString(), ddFolder1.SelectedValue);
                     if (ds0003.Tables[0].Rows.Count > 0)
@@ -1153,125 +1240,216 @@ namespace DMS
                     }
                     /// Check the doc is already is there or not end
 
-
-                    ds0003.Reset();
-                    ds0003 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
-                    double FileSize = Convert.ToDouble(ds0003.Tables[0].Rows[0][24].ToString());
-                    #region Validation of space if it is exceeding or not
-                    SqlConnection con = Utility.GetConnection();
-                    SqlCommand cmd = null;
-                    con.Open();
-                    SqlDataAdapter adpAvl01;
-                    DataSet dsAvl01 = new DataSet();
-                    double AvailableSpace = 0;
-
-                    cmd = new SqlCommand("select TotalSpace,UsedSpace,AvailableSpace from ServerConfig where CompCode='" + Session["CompCode"].ToString() + "'", con);
-                    adpAvl01 = new SqlDataAdapter(cmd);
-                    dsAvl01.Reset();
-                    adpAvl01.Fill(dsAvl01);
-                    AvailableSpace = Convert.ToDouble(dsAvl01.Tables[0].Rows[0][2].ToString());
-                    if (FileSize > AvailableSpace)
+                    DataSet ds01 = new DataSet();
+                    ds01.Reset();
+                    ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                    string FormType = "";
+                    if (ds01.Tables[0].Rows.Count > 0)
                     {
-                        throw new Exception("You do not have enough space to make a copy of this Document. Please contact with Administrator.");
+                        FormType = ds01.Tables[0].Rows[0][27].ToString();
                     }
-                    #endregion
-                    
-                    // Initialise the reference to the spaces store
-                    this.spacesStore = new Alfresco.RepositoryWebService.Store();
-                    this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
-                    this.spacesStore.address = "SpacesStore";
-                    //create a predicate with the first CMLCreate result
-                    Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
-                    referenceForNode.store = this.spacesStore;
-                    referenceForNode.uuid = ViewState["SelDocUUID"].ToString(); // Selected Doc's UUID
-
-                    Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
-                    Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
-                    sourcePredicate.Items = obj_new;
-
-                    //create a reference from the second CMLCreate performed for space
-                    Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
-                    referenceForTargetSpace.store = this.spacesStore;
-                    referenceForTargetSpace.uuid = ddFolder1.SelectedValue; // Selected Location's (Folder's) UUID
-
-                    //reference for the target space
-                    Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
-                    targetSpace.store =this.spacesStore;
-                    targetSpace.uuid = referenceForTargetSpace.uuid;
-                    targetSpace.associationType = Constants.ASSOC_CONTAINS;
-                    targetSpace.childName = Session["VSDocName"].ToString(); // Selected Doc's Name
-
-                    //copy content
-                    CMLCopy copy = new CMLCopy();
-                    copy.where = sourcePredicate;
-                    copy.to = targetSpace;
-
-                    CML cmlCopy = new CML();
-                    cmlCopy.copy = new CMLCopy[] { copy };
-
-                    //perform a CML update to copy the node
-                    WebServiceFactory wsF = new WebServiceFactory();
-                    wsF.UserName = Session["AdmUserID"].ToString();
-                    wsF.Ticket = Session["AdmTicket"].ToString();
-                    wsF.getRepositoryService().update(cmlCopy);
-
-                    SearchNode ObjSearchNode = new SearchNode();
-                    string CopiedDocUUID = ObjSearchNode.ExistNode(ddFolder1.SelectedValue, targetSpace.childName, Session["AdmUserID"].ToString(), Session["AdmTicket"].ToString());
-                    
-                    // .Net & SQL Server Coding Start
-                    ds0001.Reset();
-                    ds0001 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
-                    if (ds0001.Tables[0].Rows.Count > 0)
+                    if (FormType == "eForm")
                     {
-                        result = ObjClassStoreProc.ExistDoc(ds0001.Tables[0].Rows[0][1].ToString(), ddFolder1.SelectedValue, Session["CompCode"].ToString());
-                        if (Convert.ToInt32(result) == -1)
+                        string DocExtension = "";
+                        DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                        if (DocExtension == ".pdf")
                         {
-                            throw new Exception("Document already exists in this folder!");
+                            mPDF = "1";
                         }
                         else
                         {
-                            result = ObjClassStoreProc.InsertDocMast(ds0001.Tables[0].Rows[0][1].ToString(), ds0001.Tables[0].Rows[0][1].ToString(), ddFolder1.SelectedValue, ds0001.Tables[0].Rows[0][2].ToString(), ds0001.Tables[0].Rows[0][3].ToString(), Session["UserID"].ToString(), DateTime.Now, ds0001.Tables[0].Rows[0][8].ToString(), ds0001.Tables[0].Rows[0][9].ToString(), ds0001.Tables[0].Rows[0][10].ToString(), ds0001.Tables[0].Rows[0][11].ToString(), ds0001.Tables[0].Rows[0][12].ToString(), ds0001.Tables[0].Rows[0][13].ToString(), ds0001.Tables[0].Rows[0][14].ToString(), ds0001.Tables[0].Rows[0][15].ToString(), ds0001.Tables[0].Rows[0][16].ToString(), ds0001.Tables[0].Rows[0][17].ToString(), "", CopiedDocUUID, targetSpace.uuid + "/" + ds0001.Tables[0].Rows[0][1].ToString().Replace(" ", "%20"), "C", Session["CompCode"].ToString(), Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()));
+                            mPDF = "0";
+                        }
+                    }
+                    else
+                    {
+                        mPDF = "1";
+                    }
+
+                    if (mPDF == "1")
+                    {
+                        #region For All types of Documents except eForm Type
+                        ds0003.Reset();
+                        ds0003 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                        double FileSize = Convert.ToDouble(ds0003.Tables[0].Rows[0][24].ToString());
+                        #region Validation of space if it is exceeding or not
+                        SqlConnection con = Utility.GetConnection();
+                        SqlCommand cmd = null;
+                        con.Open();
+                        SqlDataAdapter adpAvl01;
+                        DataSet dsAvl01 = new DataSet();
+                        double AvailableSpace = 0;
+
+                        cmd = new SqlCommand("select TotalSpace,UsedSpace,AvailableSpace from ServerConfig where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                        adpAvl01 = new SqlDataAdapter(cmd);
+                        dsAvl01.Reset();
+                        adpAvl01.Fill(dsAvl01);
+                        AvailableSpace = Convert.ToDouble(dsAvl01.Tables[0].Rows[0][2].ToString());
+                        if (FileSize > AvailableSpace)
+                        {
+                            throw new Exception("You do not have enough space to make a copy of this Document. Please contact with Administrator.");
+                        }
+                        #endregion
+
+                        // Initialise the reference to the spaces store
+                        this.spacesStore = new Alfresco.RepositoryWebService.Store();
+                        this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
+                        this.spacesStore.address = "SpacesStore";
+                        //create a predicate with the first CMLCreate result
+                        Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
+                        referenceForNode.store = this.spacesStore;
+                        referenceForNode.uuid = ViewState["SelDocUUID"].ToString(); // Selected Doc's UUID
+
+                        Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
+                        Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
+                        sourcePredicate.Items = obj_new;
+
+                        //create a reference from the second CMLCreate performed for space
+                        Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
+                        referenceForTargetSpace.store = this.spacesStore;
+                        referenceForTargetSpace.uuid = ddFolder1.SelectedValue; // Selected Location's (Folder's) UUID
+
+                        //reference for the target space
+                        Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
+                        targetSpace.store = this.spacesStore;
+                        targetSpace.uuid = referenceForTargetSpace.uuid;
+                        targetSpace.associationType = Constants.ASSOC_CONTAINS;
+                        targetSpace.childName = Session["VSDocName"].ToString(); // Selected Doc's Name
+
+                        //copy content
+                        CMLCopy copy = new CMLCopy();
+                        copy.where = sourcePredicate;
+                        copy.to = targetSpace;
+
+                        CML cmlCopy = new CML();
+                        cmlCopy.copy = new CMLCopy[] { copy };
+
+                        //perform a CML update to copy the node
+                        WebServiceFactory wsF = new WebServiceFactory();
+                        wsF.UserName = Session["AdmUserID"].ToString();
+                        wsF.Ticket = Session["AdmTicket"].ToString();
+                        wsF.getRepositoryService().update(cmlCopy);
+
+                        SearchNode ObjSearchNode = new SearchNode();
+                        string CopiedDocUUID = ObjSearchNode.ExistNode(ddFolder1.SelectedValue, targetSpace.childName, Session["AdmUserID"].ToString(), Session["AdmTicket"].ToString());
+
+                        // .Net & SQL Server Coding Start
+                        ds0001.Reset();
+                        ds0001 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                        if (ds0001.Tables[0].Rows.Count > 0)
+                        {
+                            result = ObjClassStoreProc.ExistDoc(ds0001.Tables[0].Rows[0][1].ToString(), ddFolder1.SelectedValue, Session["CompCode"].ToString());
                             if (Convert.ToInt32(result) == -1)
                             {
                                 throw new Exception("Document already exists in this folder!");
                             }
                             else
                             {
-                                if (con.State == ConnectionState.Closed)
+                                result = ObjClassStoreProc.InsertDocMast(ds0001.Tables[0].Rows[0][1].ToString(), ds0001.Tables[0].Rows[0][1].ToString(), ddFolder1.SelectedValue, ds0001.Tables[0].Rows[0][2].ToString(), ds0001.Tables[0].Rows[0][3].ToString(), Session["UserID"].ToString(), DateTime.Now, ds0001.Tables[0].Rows[0][8].ToString(), ds0001.Tables[0].Rows[0][9].ToString(), ds0001.Tables[0].Rows[0][10].ToString(), ds0001.Tables[0].Rows[0][11].ToString(), ds0001.Tables[0].Rows[0][12].ToString(), ds0001.Tables[0].Rows[0][13].ToString(), ds0001.Tables[0].Rows[0][14].ToString(), ds0001.Tables[0].Rows[0][15].ToString(), ds0001.Tables[0].Rows[0][16].ToString(), ds0001.Tables[0].Rows[0][17].ToString(), "", CopiedDocUUID, targetSpace.uuid + "/" + ds0001.Tables[0].Rows[0][1].ToString().Replace(" ", "%20"), "C", Session["CompCode"].ToString(), Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()));
+                                if (Convert.ToInt32(result) == -1)
                                 {
-                                    con.Open();
+                                    throw new Exception("Document already exists in this folder!");
                                 }
-                                DataSet ds01 = new DataSet();
-                                ds01.Reset();
-                                #region Maintaining DocLog
-                                string ActualDocUUID = "";
-                                ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
-                                ActualDocUUID = ds01.Tables[0].Rows[0][4].ToString();
-                                string MaxID = ObjClassStoreProc.MaxAutoID4DocLog(ActualDocUUID, Session["CompCode"].ToString());
-                                string InsertDocLog = ObjClassStoreProc.InsertDocLog(MaxID, ActualDocUUID, referenceForNode.uuid, Session["UserID"].ToString(), "Document has been copied by ", Session["CompCode"].ToString());
-                                #endregion
-                                cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace+'" + Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()) + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                cmd.ExecuteNonQuery();
-                                cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                cmd.ExecuteNonQuery();
-                                con.Close();
-                                DataSet dsPerm = new DataSet();
-                                dsPerm.Reset();
-                                UserRights RightsObj = new UserRights();
-                                dsPerm = RightsObj.FetchPermission(ddFolder1.SelectedValue, Session["CompCode"].ToString());
-                                if (dsPerm.Tables[0].Rows.Count > 0)
+                                else
                                 {
-                                    for (int i = 0; i < dsPerm.Tables[0].Rows.Count; i++)
+                                    if (con.State == ConnectionState.Closed)
                                     {
-                                        RightsObj.InsertPermissionSingleData(CopiedDocUUID, "Document", dsPerm.Tables[0].Rows[i][0].ToString(), dsPerm.Tables[0].Rows[i][1].ToString(), Session["CompCode"].ToString());
+                                        con.Open();
                                     }
+                                    ds01.Reset();
+                                    #region Maintaining DocLog
+                                    string ActualDocUUID = "";
+                                    ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                                    ActualDocUUID = ds01.Tables[0].Rows[0][4].ToString();
+                                    string MaxID = ObjClassStoreProc.MaxAutoID4DocLog(ActualDocUUID, Session["CompCode"].ToString());
+                                    string InsertDocLog = ObjClassStoreProc.InsertDocLog(MaxID, ActualDocUUID, referenceForNode.uuid, Session["UserID"].ToString(), "Document has been copied by ", Session["CompCode"].ToString());
+                                    #endregion
+                                    cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace+'" + Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()) + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                    cmd.ExecuteNonQuery();
+                                    cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                    cmd.ExecuteNonQuery();
+                                    con.Close();
+                                    DataSet dsPerm = new DataSet();
+                                    dsPerm.Reset();
+                                    UserRights RightsObj = new UserRights();
+                                    dsPerm = RightsObj.FetchPermission(ddFolder1.SelectedValue, Session["CompCode"].ToString());
+                                    if (dsPerm.Tables[0].Rows.Count > 0)
+                                    {
+                                        for (int i = 0; i < dsPerm.Tables[0].Rows.Count; i++)
+                                        {
+                                            RightsObj.InsertPermissionSingleData(CopiedDocUUID, "Document", dsPerm.Tables[0].Rows[i][0].ToString(), dsPerm.Tables[0].Rows[i][1].ToString(), Session["CompCode"].ToString());
+                                        }
+                                    }
+                                    Response.Redirect("home.aspx", false);
                                 }
-                                Response.Redirect("home.aspx",false);
                             }
                         }
+                        Utility.CloseConnection(con);
+                        /// .Net & SQL Server Coding End
+                        #endregion
                     }
-                    Utility.CloseConnection(con);
-                    /// .Net & SQL Server Coding End
+                    else if (mPDF == "0")
+                    {
+                        #region For eForm Type Documents
+                        string AutoGenID = Guid.NewGuid().ToString();
+                        result = ObjClassStoreProc.InsertDocMast(ds01.Tables[0].Rows[0][1].ToString(), ds01.Tables[0].Rows[0][1].ToString(), ddFolder1.SelectedValue, ds01.Tables[0].Rows[0][2].ToString(), ds01.Tables[0].Rows[0][3].ToString(), Session["UserID"].ToString(), DateTime.Now, ds01.Tables[0].Rows[0][8].ToString(), ds01.Tables[0].Rows[0][9].ToString(), ds01.Tables[0].Rows[0][10].ToString(), ds01.Tables[0].Rows[0][11].ToString(), ds01.Tables[0].Rows[0][12].ToString(), ds01.Tables[0].Rows[0][13].ToString(), ds01.Tables[0].Rows[0][14].ToString(), ds01.Tables[0].Rows[0][15].ToString(), ds01.Tables[0].Rows[0][16].ToString(), ds01.Tables[0].Rows[0][17].ToString(), "", AutoGenID, "", "C", Session["CompCode"].ToString(), Convert.ToDouble(ds01.Tables[0].Rows[0][24].ToString()));
+                        if (Convert.ToInt32(result) == -1)
+                        {
+                            throw new Exception("Document already exists in this folder!");
+                        }
+                        else
+                        {
+                            double FileSize = Convert.ToDouble(ds01.Tables[0].Rows[0][24].ToString());
+                            #region Validation of space if it is exceeding or not
+                            SqlConnection con = Utility.GetConnection();
+                            SqlCommand cmd = null;
+                            con.Open();
+                            SqlDataAdapter adpAvl01;
+                            DataSet dsAvl01 = new DataSet();
+                            double AvailableSpace = 0;
+
+                            cmd = new SqlCommand("select TotalSpace,UsedSpace,AvailableSpace from ServerConfig where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                            adpAvl01 = new SqlDataAdapter(cmd);
+                            dsAvl01.Reset();
+                            adpAvl01.Fill(dsAvl01);
+                            AvailableSpace = Convert.ToDouble(dsAvl01.Tables[0].Rows[0][2].ToString());
+                            if (FileSize > AvailableSpace)
+                            {
+                                throw new Exception("You do not have enough space to make a copy of this Document. Please contact with Administrator.");
+                            }
+                            #endregion
+                            if (con.State == ConnectionState.Closed)
+                            {
+                                con.Open();
+                            }
+                            #region Maintaining DocLog
+                            string ActualDocUUID = "";
+                            ds01.Reset();
+                            ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                            ActualDocUUID = ds01.Tables[0].Rows[0][4].ToString();
+                            string MaxID = ObjClassStoreProc.MaxAutoID4DocLog(ActualDocUUID, Session["CompCode"].ToString());
+                            string InsertDocLog = ObjClassStoreProc.InsertDocLog(MaxID, ActualDocUUID, AutoGenID, Session["UserID"].ToString(), "Document has been copied by ", Session["CompCode"].ToString());
+                            #endregion
+                            cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace+'" + Convert.ToDouble(ds01.Tables[0].Rows[0][24].ToString()) + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                            cmd.ExecuteNonQuery();
+                            cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                            cmd.ExecuteNonQuery();
+                            con.Close();
+                            DataSet dsPerm = new DataSet();
+                            dsPerm.Reset();
+                            UserRights RightsObj = new UserRights();
+                            dsPerm = RightsObj.FetchPermission(ddFolder1.SelectedValue, Session["CompCode"].ToString());
+                            if (dsPerm.Tables[0].Rows.Count > 0)
+                            {
+                                for (int i = 0; i < dsPerm.Tables[0].Rows.Count; i++)
+                                {
+                                    RightsObj.InsertPermissionSingleData(AutoGenID, "Document", dsPerm.Tables[0].Rows[i][0].ToString(), dsPerm.Tables[0].Rows[i][1].ToString(), Session["CompCode"].ToString());
+                                }
+                            }
+                            Response.Redirect("home.aspx", false);
+                        }
+                        #endregion
+                    }
                 }
             }
             catch (Exception ex)
@@ -1365,6 +1543,9 @@ namespace DMS
                 }
                 if (hfEmailStat.Value == "Y")
                 {
+                    ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                    DataSet ds01 = new DataSet();
+                    string mPDF = "";
                     cmdEmail.Enabled = false;
                     string SenderMail = "";
                     string SenderName = "";
@@ -1381,78 +1562,202 @@ namespace DMS
                     DataSet ds001 = new DataSet();
                     FetchOnlyNameORExtension ObjFetchOnlyNameORExtension = new FetchOnlyNameORExtension();
 
-                    // Initialise the reference to the spaces store
-                    Alfresco.ContentWebService.Store spacesStore = new Alfresco.ContentWebService.Store();
-                    spacesStore.scheme = Alfresco.ContentWebService.StoreEnum.workspace;
-                    spacesStore.address = "SpacesStore";
-
-                    Alfresco.ContentWebService.Reference referenceForNode = new Alfresco.ContentWebService.Reference();
-                    referenceForNode.store = spacesStore;
-                    referenceForNode.uuid = Session["SelDocUUID"].ToString();//Doc UUID
-
-                    Alfresco.ContentWebService.Reference[] obj_new = new Alfresco.ContentWebService.Reference[] { referenceForNode };
-                    Alfresco.ContentWebService.Predicate sourcePredicate = new Alfresco.ContentWebService.Predicate();
-                    sourcePredicate.Items = obj_new;
-
-                    // Admin Credentials start
-                    WebServiceFactory wsFA = new WebServiceFactory();
-                    wsFA.UserName = Session["AdmUserID"].ToString();
-                    wsFA.Ticket = Session["AdmTicket"].ToString();
-                    // Admin Credentials end
-                    Alfresco.ContentWebService.Content[] readResult = wsFA.getContentService().read(sourcePredicate, Constants.PROP_CONTENT);
-
-                    String ticketURL = "?ticket=" + wsFA.Ticket;
-                    String downloadURL = readResult[0].url + ticketURL;
-                    Uri address = new Uri(downloadURL);
-                    string url = downloadURL;
-                    string newSaveFileName = "";
-                    //newSaveFileName = ObjFetchOnlyNameORExtension.FetchOnlyDocName(Session["VSDocName"].ToString()) + "_" + Session["UserID"].ToString() + "." + ObjFetchOnlyNameORExtension.FetchOnlyDocExt(Session["VSDocName"].ToString());
-                    newSaveFileName = ObjFetchOnlyNameORExtension.FetchOnlyDocName(Session["VSDocName"].ToString()) + "_" + GetTimestamp(DateTime.Now) + "." + ObjFetchOnlyNameORExtension.FetchOnlyDocExt(Session["VSDocName"].ToString());
-                    
-                    string file_name = Server.MapPath("eMailDocs") + "\\" + newSaveFileName;
-                    SaveFileFromURL ObjSaveFileFromURL = new SaveFileFromURL();
-                    ObjSaveFileFromURL.SaveFile4mURL(file_name, url);
-
-                    mailing ObjMailSetup = new mailing();
-                    ds001 = ObjMailSetup.MailSettings();
-                    if (ds001.Tables[0].Rows.Count > 0)
+                    ds01.Reset();
+                    ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                    string FormType = "";
+                    if (ds01.Tables[0].Rows.Count > 0)
                     {
-                        SenderMail = ds001.Tables[0].Rows[0][0].ToString();
-                        SenderName = ds001.Tables[0].Rows[0][1].ToString();
-                        SmtpHost = ds001.Tables[0].Rows[0][2].ToString();
-                        SmtpPort = Convert.ToInt32(ds001.Tables[0].Rows[0][3].ToString());
-                        CredenUsername = ds001.Tables[0].Rows[0][4].ToString();
-                        CredenPwd = ds001.Tables[0].Rows[0][5].ToString();
+                        FormType = ds01.Tables[0].Rows[0][27].ToString();
+                    }
+                    if (FormType == "eForm")
+                    {
+                        string DocExtension = "";
+                        DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                        if (DocExtension == ".pdf")
+                        {
+                            mPDF = "1";
+                        }
+                        else
+                        {
+                            mPDF = "0";
+                        }
+                    }
+                    else
+                    {
+                        mPDF = "1";
                     }
 
-                    ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
-                    ds05.Reset();
-                    ds05 = ObjClassStoreProc.UserInfoPassingUserID(Session["UserID"].ToString());
-                    if (ds05.Tables[0].Rows.Count > 0)
+                    if (mPDF == "1")
                     {
-                        MailFrom = ds05.Tables[0].Rows[0][3].ToString();
-                        AssignedBy = ds05.Tables[0].Rows[0][1].ToString() + " " + ds05.Tables[0].Rows[0][2].ToString();
-                    }
+                        #region For All types of Documents except eForm type
+                        // Initialise the reference to the spaces store
+                        Alfresco.ContentWebService.Store spacesStore = new Alfresco.ContentWebService.Store();
+                        spacesStore.scheme = Alfresco.ContentWebService.StoreEnum.workspace;
+                        spacesStore.address = "SpacesStore";
 
-                    //AssignedBy = Session["UserID"].ToString();
+                        Alfresco.ContentWebService.Reference referenceForNode = new Alfresco.ContentWebService.Reference();
+                        referenceForNode.store = spacesStore;
+                        referenceForNode.uuid = Session["SelDocUUID"].ToString();//Doc UUID
 
-                    MailSub = txtSubject.Text.Trim();
-                    MailMsg = txtMsg.Text.Trim();
-                    MailTo = txtToMail.Text.Trim();
-                    mailing Obj_Mail = new mailing();
-                    try
-                    {
-                        Obj_Mail.SendEmail(file_name, AssignedBy, MailFrom, MailTo, "", "", MailSub, MailMsg, SenderMail, SenderName, SmtpHost, SmtpPort, CredenUsername, CredenPwd);
-                        cmdEmail.Enabled = true;
+                        Alfresco.ContentWebService.Reference[] obj_new = new Alfresco.ContentWebService.Reference[] { referenceForNode };
+                        Alfresco.ContentWebService.Predicate sourcePredicate = new Alfresco.ContentWebService.Predicate();
+                        sourcePredicate.Items = obj_new;
+
+                        // Admin Credentials start
+                        WebServiceFactory wsFA = new WebServiceFactory();
+                        wsFA.UserName = Session["AdmUserID"].ToString();
+                        wsFA.Ticket = Session["AdmTicket"].ToString();
+                        // Admin Credentials end
+                        Alfresco.ContentWebService.Content[] readResult = wsFA.getContentService().read(sourcePredicate, Constants.PROP_CONTENT);
+
+                        String ticketURL = "?ticket=" + wsFA.Ticket;
+                        String downloadURL = readResult[0].url + ticketURL;
+                        Uri address = new Uri(downloadURL);
+                        string url = downloadURL;
+                        string newSaveFileName = "";
+                        //newSaveFileName = ObjFetchOnlyNameORExtension.FetchOnlyDocName(Session["VSDocName"].ToString()) + "_" + Session["UserID"].ToString() + "." + ObjFetchOnlyNameORExtension.FetchOnlyDocExt(Session["VSDocName"].ToString());
+                        newSaveFileName = ObjFetchOnlyNameORExtension.FetchOnlyDocName(Session["VSDocName"].ToString()) + "_" + GetTimestamp(DateTime.Now) + "." + ObjFetchOnlyNameORExtension.FetchOnlyDocExt(Session["VSDocName"].ToString());
+
+                        string file_name = Server.MapPath("eMailDocs") + "\\" + newSaveFileName;
+                        SaveFileFromURL ObjSaveFileFromURL = new SaveFileFromURL();
+                        ObjSaveFileFromURL.SaveFile4mURL(file_name, url);
+
+                        mailing ObjMailSetup = new mailing();
+                        ds001 = ObjMailSetup.MailSettings();
+                        if (ds001.Tables[0].Rows.Count > 0)
+                        {
+                            SenderMail = ds001.Tables[0].Rows[0][0].ToString();
+                            SenderName = ds001.Tables[0].Rows[0][1].ToString();
+                            SmtpHost = ds001.Tables[0].Rows[0][2].ToString();
+                            SmtpPort = Convert.ToInt32(ds001.Tables[0].Rows[0][3].ToString());
+                            CredenUsername = ds001.Tables[0].Rows[0][4].ToString();
+                            CredenPwd = ds001.Tables[0].Rows[0][5].ToString();
+                        }
+
+                        ds05.Reset();
+                        ds05 = ObjClassStoreProc.UserInfoPassingUserID(Session["UserID"].ToString());
+                        if (ds05.Tables[0].Rows.Count > 0)
+                        {
+                            MailFrom = ds05.Tables[0].Rows[0][3].ToString();
+                            AssignedBy = ds05.Tables[0].Rows[0][1].ToString() + " " + ds05.Tables[0].Rows[0][2].ToString();
+                        }
+
+                        //AssignedBy = Session["UserID"].ToString();
+
+                        MailSub = txtSubject.Text.Trim();
+                        MailMsg = txtMsg.Text.Trim();
+                        MailTo = txtToMail.Text.Trim();
+                        mailing Obj_Mail = new mailing();
+                        try
+                        {
+                            Obj_Mail.SendEmail(file_name, AssignedBy, MailFrom, MailTo, "", "", MailSub, MailMsg, SenderMail, SenderName, SmtpHost, SmtpPort, CredenUsername, CredenPwd);
+                            cmdEmail.Enabled = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            cmdEmail.Enabled = true;
+                            throw new Exception(ex.Message);
+                        }
+                        //Redirect2Home("Document uploaded successfully!", "home.aspx");
+                        //Response.Redirect("home.aspx", false);
+                        throw new Exception("The Document has been emailed successfully !!");
+                        #endregion
                     }
-                    catch (Exception ex)
+                    else if (mPDF == "0")
                     {
-                        cmdEmail.Enabled = true;
-                        throw new Exception(ex.Message);
+                        #region For eForm Type Documents
+                        #region PDF Creation
+                        Font font8 = FontFactory.GetFont("ARIAL", 10);
+                        DataTable dt;
+                        dt = new DataTable();
+                        dt = CreateDT4PDF(Session["SelDocUUID"].ToString());
+
+                        string FileName = ds01.Tables[0].Rows[0][1].ToString() + "_" + GetTimestamp(DateTime.Now) + ".pdf";
+                        string TotStr = ds01.Tables[0].Rows[0][1].ToString();
+                        Document doc = new Document(iTextSharp.text.PageSize.A4, 10, 10, 42, 35);
+                        PdfWriter wri = PdfWriter.GetInstance(doc, new FileStream(Server.MapPath("CreatedPDFs") + "\\" + FileName, FileMode.Create));
+                        Paragraph paragraph = new Paragraph(TotStr);
+                        paragraph.Alignment = Element.ALIGN_CENTER;
+                        paragraph.Font.SetColor(0, 0, 255);
+                        paragraph.Font.Size = 14;
+                        doc.Open();
+                        doc.Add(paragraph);
+
+                        if (dt != null)
+                        {
+                            PdfPTable PdfTable = new PdfPTable(dt.Columns.Count);
+                            PdfPCell PdfPCell = null;
+                            for (int rows = 0; rows < dt.Rows.Count; rows++)
+                            {
+                                for (int column = 0; column < dt.Columns.Count; column++)
+                                {
+                                    PdfPCell = new PdfPCell(new Phrase(new Chunk(dt.Rows[rows][column].ToString(), font8)));
+                                    PdfTable.AddCell(PdfPCell);
+                                    PdfPCell.Border = 1;
+                                }
+                            }
+                            PdfTable.SpacingBefore = 35f; // Give some space after the text or it may overlap the table
+                            doc.Add(PdfTable);
+                        }
+                        doc.Close();
+
+                        //string filepath = Server.MapPath("CreatedPDFs") + "\\" + FileName;
+                        //FileInfo myfile = new FileInfo(filepath);
+                        //if (myfile.Exists)
+                        //{
+                        //    Response.ClearContent();
+                        //    Response.AddHeader("Content-Disposition", "attachment; filename=" + myfile.Name.Replace(" ", "_"));
+                        //    Response.AddHeader("Content-Length", myfile.Length.ToString());
+                        //    Response.ContentType = ReturnExtension(myfile.Extension.ToLower());
+                        //    Response.TransmitFile(myfile.FullName);
+                        //    //Response.End();
+                        //    HttpContext.Current.ApplicationInstance.CompleteRequest();
+                        //}
+                        #endregion
+
+                        string file_name = Server.MapPath("CreatedPDFs") + "\\" + FileName;
+
+                        mailing ObjMailSetup = new mailing();
+                        ds001 = ObjMailSetup.MailSettings();
+                        if (ds001.Tables[0].Rows.Count > 0)
+                        {
+                            SenderMail = ds001.Tables[0].Rows[0][0].ToString();
+                            SenderName = ds001.Tables[0].Rows[0][1].ToString();
+                            SmtpHost = ds001.Tables[0].Rows[0][2].ToString();
+                            SmtpPort = Convert.ToInt32(ds001.Tables[0].Rows[0][3].ToString());
+                            CredenUsername = ds001.Tables[0].Rows[0][4].ToString();
+                            CredenPwd = ds001.Tables[0].Rows[0][5].ToString();
+                        }
+
+                        ds05.Reset();
+                        ds05 = ObjClassStoreProc.UserInfoPassingUserID(Session["UserID"].ToString());
+                        if (ds05.Tables[0].Rows.Count > 0)
+                        {
+                            MailFrom = ds05.Tables[0].Rows[0][3].ToString();
+                            AssignedBy = ds05.Tables[0].Rows[0][1].ToString() + " " + ds05.Tables[0].Rows[0][2].ToString();
+                        }
+
+                        //AssignedBy = Session["UserID"].ToString();
+
+                        MailSub = txtSubject.Text.Trim();
+                        MailMsg = txtMsg.Text.Trim();
+                        MailTo = txtToMail.Text.Trim();
+                        mailing Obj_Mail = new mailing();
+                        try
+                        {
+                            Obj_Mail.SendEmail(file_name, AssignedBy, MailFrom, MailTo, "", "", MailSub, MailMsg, SenderMail, SenderName, SmtpHost, SmtpPort, CredenUsername, CredenPwd);
+                            cmdEmail.Enabled = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            cmdEmail.Enabled = true;
+                            throw new Exception(ex.Message);
+                        }
+                        Response.Redirect("home.aspx", false);
+                        //MsgNodetMail.Text = "The Document has been emailed successfully !!";
+                        //throw new Exception("The Document has been emailed successfully !!");
+                        #endregion
                     }
-                    //Redirect2Home("Document uploaded successfully!", "home.aspx");
-                    //Response.Redirect("home.aspx", false);
-                    throw new Exception("The Document has been emailed successfully !!");
                 }
             }
             catch (Exception ex)
@@ -1460,7 +1765,159 @@ namespace DMS
                 hfMsg.Value=ex.Message;
             }
         }
-        
+
+        protected DataTable CreateDT4PDF(string DocUUID)
+        {
+            try
+            {
+                ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                DataSet ds01 = new DataSet();
+                DataSet ds02 = new DataSet();
+                DataTable dtFields = null;
+                string TemplateUUID = "";
+                ds02.Reset();
+                ds02 = ObjClassStoreProc.DocMetaValueDetails(DocUUID);
+                if (ds02.Tables[0].Rows.Count > 0)
+                {
+                    TemplateUUID = ds02.Tables[0].Rows[0][1].ToString();
+                }
+                ds01.Reset();
+                ds01 = ObjClassStoreProc.DocDetails(TemplateUUID,Session["CompCode"].ToString());
+                if (ds01.Tables[0].Rows.Count > 0)
+                {
+                    ds01.Reset();
+                    ds01 = ObjClassStoreProc.ControlDetails(TemplateUUID);
+                    if (ds01.Tables[0].Rows.Count > 0)
+                    {
+                        dtFields = CreateDT4Fields();
+                        for (int i = 0; i < ds01.Tables[0].Rows.Count; i++)
+                        {
+                            DataRow r = dtFields.NewRow();
+                            dtFields.Rows.Add(AddNewInDTFields(r, Convert.ToInt32(ds01.Tables[0].Rows[i][1].ToString()), ds01.Tables[0].Rows[i][2].ToString(), ds01.Tables[0].Rows[i][3].ToString(), ds01.Tables[0].Rows[i][4].ToString(), ds01.Tables[0].Rows[i][6].ToString(), Convert.ToInt32(ds01.Tables[0].Rows[i][7].ToString()), Convert.ToInt32(ds01.Tables[0].Rows[i][8].ToString()), Convert.ToInt32(ds01.Tables[0].Rows[i][9].ToString()), ds01.Tables[0].Rows[i][10].ToString(), ds01.Tables[0].Rows[i][5].ToString(), ds01.Tables[0].Rows[i][11].ToString()));
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("No Control found in this Form !!");
+                    }
+                }
+
+                DataTable dt = new DataTable();
+                dt.Columns.Add("LabelField", typeof(string));
+                dt.Columns.Add("ValueField", typeof(string));
+                DataRow dr;
+
+                for (int i = 0; i < dtFields.Rows.Count; i++)
+                {
+                    dr = dt.NewRow();
+                    dr["LabelField"] = dtFields.Rows[i]["LabelDesc"].ToString();
+                    dr["ValueField"] = ds02.Tables[0].Rows[0][i + 4].ToString();
+                    dt.Rows.Add(dr);
+                }
+                dt.AcceptChanges();
+                return dt;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public DataTable CreateDT4Fields()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("SerialNo", typeof(Int32));
+            dt.Columns.Add("LabelID", typeof(string));
+            dt.Columns.Add("ControlID", typeof(string));
+            dt.Columns.Add("ControlType", typeof(string));
+            dt.Columns.Add("DataType", typeof(string));
+            dt.Columns.Add("MaxLength", typeof(Int32));
+            dt.Columns.Add("MinVal", typeof(Int32));
+            dt.Columns.Add("MaxVal", typeof(Int32));
+            dt.Columns.Add("Formula", typeof(string));
+            dt.Columns.Add("LabelDesc", typeof(string));
+            dt.Columns.Add("Controls4Formula", typeof(string));
+            return dt;
+        }
+
+        public DataRow AddNewInDTFields(DataRow r, int SerialNo, string LabelID, string ControlID, string ControlType, string DataType, int MaxLength, int MinVal, int MaxVal, string Formula, string LabelDesc, string Controls4Formula)
+        {
+            r["SerialNo"] = SerialNo;
+            r["LabelID"] = LabelID;
+            r["ControlID"] = ControlID;
+            r["ControlType"] = ControlType;
+            r["DataType"] = DataType;
+            r["MaxLength"] = MaxLength;
+            r["MinVal"] = MinVal;
+            r["MaxVal"] = MaxVal;
+            r["Formula"] = Formula;
+            r["LabelDesc"] = LabelDesc;
+            r["Controls4Formula"] = Controls4Formula;
+            return r;
+        }
+
+        private string ReturnExtension(string fileExtension)
+        {
+            switch (fileExtension)
+            {
+                case ".htm":
+                case ".html":
+                case ".log":
+                    return "text/HTML";
+                case ".txt":
+                    return "text/plain";
+                case ".doc":
+                    return "application/ms-word";
+                case ".tiff":
+                case ".tif":
+                    return "image/tiff";
+                case ".asf":
+                    return "video/x-ms-asf";
+                case ".avi":
+                    return "video/avi";
+                case ".zip":
+                    return "application/zip";
+                case ".xls":
+                case ".csv":
+                    return "application/vnd.ms-excel";
+                case ".gif":
+                    return "image/gif";
+                case ".jpg":
+                case "jpeg":
+                    return "image/jpeg";
+                case ".bmp":
+                    return "image/bmp";
+                case ".wav":
+                    return "audio/wav";
+                case ".mp3":
+                    return "audio/mpeg3";
+                case ".mpg":
+                case "mpeg":
+                    return "video/mpeg";
+                case ".rtf":
+                    return "application/rtf";
+                case ".asp":
+                    return "text/asp";
+                case ".pdf":
+                    return "application/pdf";
+                case ".fdf":
+                    return "application/vnd.fdf";
+                case ".ppt":
+                    return "application/mspowerpoint";
+                case ".dwg":
+                    return "image/vnd.dwg";
+                case ".msg":
+                    return "application/msoutlook";
+                case ".xml":
+                case ".sdxl":
+                    return "application/xml";
+                case ".xdp":
+                    return "application/vnd.adobe.xdp+xml";
+                default:
+                    return "application/octet-stream";
+            }
+        }
+
         /// <summary>
         /// To move the selected document
         /// </summary>
@@ -1542,10 +1999,12 @@ namespace DMS
                     /// Check the selected doc is in a running workflow or not start
                     SqlConnection con = Utility.GetConnection();
                     SqlCommand cmd = null;
-                    con.Open();
                     DataSet ds0001 = new DataSet();
                     DataSet ds0002 = new DataSet();
                     DataSet ds0003 = new DataSet();
+                    string mPDF = "";
+
+                    con.Open();
                     cmd = new SqlCommand("select * from wf_log_mast where doc_id='" + ViewState["SelDocID"].ToString() + "' and wf_prog_stat='Completed'", con);
                     SqlDataAdapter adapter0002 = new SqlDataAdapter(cmd);
                     adapter0002.Fill(ds0002);
@@ -1561,72 +2020,111 @@ namespace DMS
                     }
                     /// Check the doc is already is there or not end
 
-                    // Initialise the reference to the spaces store
-                    this.spacesStore = new Alfresco.RepositoryWebService.Store();
-                    this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
-                    this.spacesStore.address = "SpacesStore";
-
-                    Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
-                    referenceForNode.store = this.spacesStore;
-                    referenceForNode.uuid = ViewState["SelDocUUID"].ToString(); // Selected Doc's UUID
-
-                    Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
-                    Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
-                    sourcePredicate.Items = obj_new;
-
-                    Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
-                    referenceForTargetSpace.store = this.spacesStore;
-                    referenceForTargetSpace.uuid = ddFolder2.SelectedValue; //ViewState["SelLocUUID"].ToString(); // Selected folder's UUID
-
-                    //reference for the target space
-                    Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
-                    targetSpace.store = this.spacesStore;
-                    targetSpace.uuid = referenceForTargetSpace.uuid;
-                    targetSpace.associationType = Constants.ASSOC_CONTAINS;
-                    targetSpace.childName = Session["VSDocName"].ToString(); // Selected Doc's Name
-
-                    //copy content
-                    CMLMove move = new CMLMove();
-                    move.where = sourcePredicate;
-                    move.to = targetSpace;
-
-                    CML cmlMove = new CML();
-                    cmlMove.move = new CMLMove[] { move };
-                    
-                    //perform a CML update to copy the node
-                    WebServiceFactory wsF = new WebServiceFactory();
-                    wsF.UserName = Session["AdmUserID"].ToString();
-                    wsF.Ticket = Session["AdmTicket"].ToString();
-                    wsF.getRepositoryService().update(cmlMove);
-
-                    /// .Net & SQL Server Coding Start
-                    ds0001.Reset();
-                    ds0001 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()),Session["CompCode"].ToString());
-                    if (ds0001.Tables[0].Rows.Count > 0)
+                    DataSet ds01 = new DataSet();
+                    ds01.Reset();
+                    ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                    string FormType = "";
+                    if (ds01.Tables[0].Rows.Count > 0)
                     {
-                        result = ObjClassStoreProc.ExistDoc(ds0001.Tables[0].Rows[0][1].ToString(), ddFolder2.SelectedValue, Session["CompCode"].ToString());
-                        if (Convert.ToInt32(result) == -1)
+                        FormType = ds01.Tables[0].Rows[0][27].ToString();
+                    }
+                    if (FormType == "eForm")
+                    {
+                        string DocExtension = "";
+                        DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                        if (DocExtension == ".pdf")
                         {
-                            throw new Exception("Document already exists in this folder!");
+                            mPDF = "1";
                         }
                         else
                         {
-                            cmd = new SqlCommand("delete from doc_mast where doc_id='" + ViewState["SelDocID"].ToString() + "'", con);
-                            cmd.ExecuteNonQuery();
-                            result = ObjClassStoreProc.InsertDocMast(ds0001.Tables[0].Rows[0][1].ToString(), ds0001.Tables[0].Rows[0][1].ToString(), ddFolder2.SelectedValue, ds0001.Tables[0].Rows[0][2].ToString(), ds0001.Tables[0].Rows[0][3].ToString(), Session["UserID"].ToString(), DateTime.Now, ds0001.Tables[0].Rows[0][8].ToString(), ds0001.Tables[0].Rows[0][9].ToString(), ds0001.Tables[0].Rows[0][10].ToString(), ds0001.Tables[0].Rows[0][11].ToString(), ds0001.Tables[0].Rows[0][12].ToString(), ds0001.Tables[0].Rows[0][13].ToString(), ds0001.Tables[0].Rows[0][14].ToString(), ds0001.Tables[0].Rows[0][15].ToString(), ds0001.Tables[0].Rows[0][16].ToString(), ds0001.Tables[0].Rows[0][17].ToString(), "", referenceForNode.uuid, targetSpace.uuid + "/" + ds0001.Tables[0].Rows[0][1].ToString().Replace(" ", "%20"), "M", Session["CompCode"].ToString(), Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()));
+                            mPDF = "0";
+                        }
+                    }
+                    else
+                    {
+                        mPDF = "1";
+                    }
+
+                    if (mPDF == "1")
+                    {
+                        #region For All types of Documents except eForm type
+                        // Initialise the reference to the spaces store
+                        this.spacesStore = new Alfresco.RepositoryWebService.Store();
+                        this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
+                        this.spacesStore.address = "SpacesStore";
+
+                        Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
+                        referenceForNode.store = this.spacesStore;
+                        referenceForNode.uuid = ViewState["SelDocUUID"].ToString(); // Selected Doc's UUID
+
+                        Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
+                        Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
+                        sourcePredicate.Items = obj_new;
+
+                        Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
+                        referenceForTargetSpace.store = this.spacesStore;
+                        referenceForTargetSpace.uuid = ddFolder2.SelectedValue; //ViewState["SelLocUUID"].ToString(); // Selected folder's UUID
+
+                        //reference for the target space
+                        Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
+                        targetSpace.store = this.spacesStore;
+                        targetSpace.uuid = referenceForTargetSpace.uuid;
+                        targetSpace.associationType = Constants.ASSOC_CONTAINS;
+                        targetSpace.childName = Session["VSDocName"].ToString(); // Selected Doc's Name
+
+                        //copy content
+                        CMLMove move = new CMLMove();
+                        move.where = sourcePredicate;
+                        move.to = targetSpace;
+
+                        CML cmlMove = new CML();
+                        cmlMove.move = new CMLMove[] { move };
+
+                        //perform a CML update to copy the node
+                        WebServiceFactory wsF = new WebServiceFactory();
+                        wsF.UserName = Session["AdmUserID"].ToString();
+                        wsF.Ticket = Session["AdmTicket"].ToString();
+                        wsF.getRepositoryService().update(cmlMove);
+
+                        /// .Net & SQL Server Coding Start
+                        ds0001.Reset();
+                        ds0001 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt32(ViewState["SelDocID"].ToString()), Session["CompCode"].ToString());
+                        if (ds0001.Tables[0].Rows.Count > 0)
+                        {
+                            result = ObjClassStoreProc.ExistDoc(ds0001.Tables[0].Rows[0][1].ToString(), ddFolder2.SelectedValue, Session["CompCode"].ToString());
                             if (Convert.ToInt32(result) == -1)
                             {
                                 throw new Exception("Document already exists in this folder!");
                             }
                             else
                             {
-                                Response.Redirect("home.aspx", false);
+                                cmd = new SqlCommand("delete from doc_mast where doc_id='" + ViewState["SelDocID"].ToString() + "'", con);
+                                cmd.ExecuteNonQuery();
+                                result = ObjClassStoreProc.InsertDocMast(ds0001.Tables[0].Rows[0][1].ToString(), ds0001.Tables[0].Rows[0][1].ToString(), ddFolder2.SelectedValue, ds0001.Tables[0].Rows[0][2].ToString(), ds0001.Tables[0].Rows[0][3].ToString(), Session["UserID"].ToString(), DateTime.Now, ds0001.Tables[0].Rows[0][8].ToString(), ds0001.Tables[0].Rows[0][9].ToString(), ds0001.Tables[0].Rows[0][10].ToString(), ds0001.Tables[0].Rows[0][11].ToString(), ds0001.Tables[0].Rows[0][12].ToString(), ds0001.Tables[0].Rows[0][13].ToString(), ds0001.Tables[0].Rows[0][14].ToString(), ds0001.Tables[0].Rows[0][15].ToString(), ds0001.Tables[0].Rows[0][16].ToString(), ds0001.Tables[0].Rows[0][17].ToString(), "", referenceForNode.uuid, targetSpace.uuid + "/" + ds0001.Tables[0].Rows[0][1].ToString().Replace(" ", "%20"), "M", Session["CompCode"].ToString(), Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString()));
+                                if (Convert.ToInt32(result) == -1)
+                                {
+                                    throw new Exception("Document already exists in this folder!");
+                                }
+                                else
+                                {
+                                    Response.Redirect("home.aspx", false);
+                                }
                             }
                         }
+                        Utility.CloseConnection(con);
+                        /// .Net & SQL Server Coding End
+                        #endregion
                     }
-                    Utility.CloseConnection(con);
-                    /// .Net & SQL Server Coding End
-                    
+                    else if (mPDF == "0")
+                    {
+                        #region For eForm type fo Document
+                        cmd = new SqlCommand("update doc_mast set fld_uuid='" + ddFolder2.SelectedValue + "' where doc_id='" + ViewState["SelDocID"].ToString() + "'", con);
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                        Response.Redirect("home.aspx", false);
+                        #endregion
+                    }
                 }
             }
             catch (Exception ex)
@@ -1815,10 +2313,10 @@ namespace DMS
                 if (Session["VSCab"] != null && Session["VSDrw"] != null && Session["VSFld"] != null && Session["VSDoc"] != null)
                 {
                     home_bal Obj_HomeBAL = new home_bal();
-                    Obj_HomeBAL.CabName = Session["VSCab"].ToString();
-                    Obj_HomeBAL.DrwName = Session["VSDrw"].ToString();
-                    Obj_HomeBAL.FldName = Session["VSFld"].ToString();
-                    Obj_HomeBAL.DocName = Session["VSDoc"].ToString();
+                    Obj_HomeBAL.CabName = Session["VSCab"].ToString(); // CabUUID
+                    Obj_HomeBAL.DrwName = Session["VSDrw"].ToString(); //DrawerUUID
+                    Obj_HomeBAL.FldName = Session["VSFld"].ToString(); //FolderUUID
+                    Obj_HomeBAL.DocName = Session["VSDoc"].ToString(); //DocID
 
                     DataSet ds1 = new DataSet();
                     ds1 = Obj_HomeBAL.SelectDocDtl();
@@ -1832,7 +2330,33 @@ namespace DMS
                         {
                             Session["DocId"] = ds1.Tables[0].Rows[0][0].ToString();
                             Session["WFDocUUId"]=ds1.Tables[0].Rows[0][4].ToString();
-                            Response.Redirect("start_workflow.aspx", true);
+                            ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
+                            DataSet ds01 = new DataSet();
+                            ds01.Reset();
+                            ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(Session["DocId"].ToString()), Session["CompCode"].ToString());
+                            string FormType = "";
+                            if (ds01.Tables[0].Rows.Count > 0)
+                            {
+                                FormType = ds01.Tables[0].Rows[0][27].ToString();
+                            }
+                            if (FormType == "eForm")
+                            {
+                                string DocExtension = "";
+                                DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                                if (DocExtension == ".pdf")
+                                {
+                                    Response.Redirect("start_workflow.aspx?FormType=" + FormType + "&DocUUID=" + Session["WFDocUUId"].ToString() + "&mPDF=1", true);
+                                }
+                                else
+                                {
+                                    Response.Redirect("start_workflow.aspx?FormType=" + FormType + "&DocUUID=" + Session["WFDocUUId"].ToString() + "&mPDF=0", true);
+                                }
+                            }
+                            else
+                            {
+                                Response.Redirect("start_workflow.aspx?FormType=" + FormType + "&DocUUID=" + Session["WFDocUUId"].ToString() + "&mPDF=1", true);
+                            }
+                            //Response.Redirect("start_workflow.aspx?FormType=" + FormType + "&DocUUID=" + Session["WFDocUUId"].ToString(), true);
                         }
                     }
                     else
@@ -2423,6 +2947,8 @@ namespace DMS
                     #region For deletion of Documents
                     DBClass DBObj = new DBClass();
                     DataSet ds01 = new DataSet();
+                    string mPDF = "";
+
                     cmd = new SqlCommand("select * from wf_log_mast where doc_id='" + Session["VSDoc"].ToString() + "'", con);
                     SqlDataAdapter adapter_003 = new SqlDataAdapter(cmd);
                     ds003.Reset();
@@ -2457,7 +2983,6 @@ namespace DMS
                             MoveDocName = ds003.Tables[0].Rows[0][1].ToString();
                         }
                     }
-
                     
                     con.Open();
                     ds0001 = ObjRights.FetchPermissions(UUID, Session["UserID"].ToString());
@@ -2480,133 +3005,191 @@ namespace DMS
                     {
                         if (ds0001.Tables[0].Rows[0][1].ToString() == "D")
                         {
-                            DataSet ds02 = new DataSet();
-                            DataSet ds_02 = new DataSet();
-                            Int32 result = 0;
-
-                            cmd = new SqlCommand("select fld_name from folder_mast where fld_uuid in(select fld_uuid from doc_mast where uuid='" + UUID + "')", con);
-                            SqlDataAdapter adapter_02 = new SqlDataAdapter(cmd);
-                            adapter_02.Fill(ds_02);
-                            if (ds_02.Tables[0].Rows.Count > 0)
+                            ds01.Reset();
+                            ds01 = ObjClassStoreProc.DocDetailsSelectPassingDocID(Convert.ToInt16(Session["VSDoc"].ToString()), Session["CompCode"].ToString());
+                            if (ds01.Tables[0].Rows.Count > 0)
                             {
-                                this.spacesStore = new Alfresco.RepositoryWebService.Store();
-                                this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
-                                this.spacesStore.address = "SpacesStore";
-                                //create a predicate with the first CMLCreate result
-                                Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
-                                referenceForNode.store = this.spacesStore;
-                                referenceForNode.uuid = UUID; // Selected Doc's / Folder's UUID
-
-                                Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
-                                Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
-                                sourcePredicate.Items = obj_new;
-
-                                if (ds_02.Tables[0].Rows[0][0].ToString() == "TRASH")
+                                string FormType = "";
+                                FormType = ds01.Tables[0].Rows[0][27].ToString();
+                                if (FormType == "eForm")
                                 {
-                                    #region For Permanent deletion start
-                                    CMLDelete delete = new CMLDelete();
-                                    delete.where = sourcePredicate;
-
-                                    CML cmlRemove = new CML();
-                                    cmlRemove.delete = new CMLDelete[] { delete };
-
-                                    WebServiceFactory wsF1 = new WebServiceFactory();
-                                    wsF1.UserName = Session["AdmUserID"].ToString();
-                                    wsF1.Ticket = Session["AdmTicket"].ToString();
-                                    wsF1.getRepositoryService().update(cmlRemove);
-
-                                    double FileSize = 0;
-                                    cmd = new SqlCommand("select * from doc_mast where uuid='" + UUID + "' and CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                    SqlDataAdapter adapter_0001 = new SqlDataAdapter(cmd);
-                                    DataSet ds_0001 = new DataSet();
-                                    adapter_0001.Fill(ds_0001);
-                                    if (ds_0001.Tables[0].Rows.Count > 0)
+                                    string DocExtension = "";
+                                    DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                                    if (DocExtension == ".pdf")
                                     {
-                                        FileSize = Convert.ToDouble(ds_0001.Tables[0].Rows[0][24].ToString());
-                                    }
-                                    cmd = new SqlCommand("delete from doc_mast where uuid='" + UUID + "' and DocUpldType='D'", con);
-                                    result = cmd.ExecuteNonQuery();
-                                    cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace-'" + FileSize + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                    cmd.ExecuteNonQuery();
-                                    cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                    cmd.ExecuteNonQuery();
-
-                                    if (result > 0)
-                                    {
-                                        Utility.CloseConnection(con);
-                                        ds01.Reset();
-                                        ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
-                                        gvDocument.DataSource = ds01;
-                                        gvDocument.DataBind();
-                                        if (ds01.Tables[0].Rows.Count > 0)
-                                        {
-                                            gvDocument.SelectedIndex = -1;
-                                        }
-                                        UpdatePanel4.Update();
-                                        Session["VSDoc"] = "";
-                                        throw new Exception("The Selected Document has been Deleted Successfully!!");
-                                    }
-                                    #endregion
-                                }
-                                else
-                                {
-                                    #region Move to TRASH Folder
-                                    cmd = new SqlCommand("select fld_uuid from folder_mast where fld_name='TRASH' and CompCode='" + Session["CompCode"].ToString() + "'", con);
-                                    SqlDataAdapter adapter02 = new SqlDataAdapter(cmd);
-                                    adapter02.Fill(ds02);
-                                    if (ds02.Tables[0].Rows.Count > 0)
-                                    {
-                                        TargetFldUUID = ds02.Tables[0].Rows[0][0].ToString();
-                                    }
-                                    //create a reference from the second CMLCreate performed for space
-                                    Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
-                                    referenceForTargetSpace.store = this.spacesStore;
-                                    referenceForTargetSpace.uuid = TargetFldUUID; // Selected folder's UUID
-
-                                    //reference for the target space
-                                    Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
-                                    targetSpace.store = this.spacesStore;
-                                    targetSpace.uuid = referenceForTargetSpace.uuid;
-                                    targetSpace.associationType = Constants.ASSOC_CONTAINS;
-                                    targetSpace.childName = GenNewDocName(MoveDocName); // Selected Doc's Name
-
-                                    cmd = new SqlCommand("update doc_mast set doc_name='" + targetSpace.childName + "', uuid='" + UUID + "',fld_uuid='" + TargetFldUUID + "',DocUpldType='D' where doc_id='" + Session["VSDoc"].ToString() + "'", con);
-                                    result = cmd.ExecuteNonQuery();
-
-                                    //move content
-                                    CMLMove move = new CMLMove();
-                                    move.where = sourcePredicate;
-                                    move.to = targetSpace;
-
-                                    CML cmlMove = new CML();
-                                    cmlMove.move = new CMLMove[] { move };
-
-                                    WebServiceFactory wsF = new WebServiceFactory();
-                                    wsF.UserName = Session["AdmUserID"].ToString();
-                                    wsF.Ticket = Session["AdmTicket"].ToString();
-                                    wsF.getRepositoryService().update(cmlMove);
-                                    // Alfresco Part End
-
-                                    folder_mast_bal OBJ_FolderBAL = new folder_mast_bal();
-                                    OBJ_FolderBAL.Labelid = UUID;
-
-                                    if (result > 0)
-                                    {
-                                        Utility.CloseConnection(con);
-                                        ds01.Reset();
-                                        ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
-                                        gvDocument.DataSource = ds01;
-                                        gvDocument.DataBind();
-                                        if (ds01.Tables[0].Rows.Count > 0)
-                                        {
-                                            gvDocument.SelectedIndex = -1;
-                                        }
-                                        UpdatePanel4.Update();
-                                        Session["VSDoc"] = "";
-                                        throw new Exception("The Selected Document has been Deleted Successfully!!");
+                                        mPDF = "1";
                                     }
                                     else
                                     {
+                                        mPDF = "0";
+                                    }
+                                }
+                                else
+                                {
+                                    mPDF = "1";
+                                }
+
+                                if (mPDF == "1")
+                                {
+                                    #region For All types of Documents except eForm type
+                                    DataSet ds02 = new DataSet();
+                                    DataSet ds_02 = new DataSet();
+                                    Int32 result = 0;
+
+                                    cmd = new SqlCommand("select fld_name from folder_mast where fld_uuid in(select fld_uuid from doc_mast where uuid='" + UUID + "')", con);
+                                    SqlDataAdapter adapter_02 = new SqlDataAdapter(cmd);
+                                    adapter_02.Fill(ds_02);
+                                    if (ds_02.Tables[0].Rows.Count > 0)
+                                    {
+                                        this.spacesStore = new Alfresco.RepositoryWebService.Store();
+                                        this.spacesStore.scheme = Alfresco.RepositoryWebService.StoreEnum.workspace;
+                                        this.spacesStore.address = "SpacesStore";
+                                        //create a predicate with the first CMLCreate result
+                                        Alfresco.RepositoryWebService.Reference referenceForNode = new Alfresco.RepositoryWebService.Reference();
+                                        referenceForNode.store = this.spacesStore;
+                                        referenceForNode.uuid = UUID; // Selected Doc's / Folder's UUID
+
+                                        Alfresco.RepositoryWebService.Reference[] obj_new = new Alfresco.RepositoryWebService.Reference[] { referenceForNode };
+                                        Alfresco.RepositoryWebService.Predicate sourcePredicate = new Alfresco.RepositoryWebService.Predicate();
+                                        sourcePredicate.Items = obj_new;
+
+                                        if (ds_02.Tables[0].Rows[0][0].ToString() == "TRASH")
+                                        {
+                                            #region For Permanent deletion start
+                                            CMLDelete delete = new CMLDelete();
+                                            delete.where = sourcePredicate;
+
+                                            CML cmlRemove = new CML();
+                                            cmlRemove.delete = new CMLDelete[] { delete };
+
+                                            WebServiceFactory wsF1 = new WebServiceFactory();
+                                            wsF1.UserName = Session["AdmUserID"].ToString();
+                                            wsF1.Ticket = Session["AdmTicket"].ToString();
+                                            wsF1.getRepositoryService().update(cmlRemove);
+
+                                            double FileSize = 0;
+                                            cmd = new SqlCommand("select * from doc_mast where uuid='" + UUID + "' and CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                            SqlDataAdapter adapter_0001 = new SqlDataAdapter(cmd);
+                                            DataSet ds_0001 = new DataSet();
+                                            adapter_0001.Fill(ds_0001);
+                                            if (ds_0001.Tables[0].Rows.Count > 0)
+                                            {
+                                                FileSize = Convert.ToDouble(ds_0001.Tables[0].Rows[0][24].ToString());
+                                            }
+                                            cmd = new SqlCommand("delete from doc_mast where uuid='" + UUID + "' and DocUpldType='D'", con);
+                                            result = cmd.ExecuteNonQuery();
+                                            cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace-'" + FileSize + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                            cmd.ExecuteNonQuery();
+                                            cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                            cmd.ExecuteNonQuery();
+
+                                            if (result > 0)
+                                            {
+                                                Utility.CloseConnection(con);
+                                                ds01.Reset();
+                                                ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
+                                                gvDocument.DataSource = ds01;
+                                                gvDocument.DataBind();
+                                                if (ds01.Tables[0].Rows.Count > 0)
+                                                {
+                                                    gvDocument.SelectedIndex = -1;
+                                                }
+                                                UpdatePanel4.Update();
+                                                Session["VSDoc"] = "";
+                                                throw new Exception("The Selected Document has been Deleted Successfully!!");
+                                            }
+                                            #endregion
+                                        }
+                                        else
+                                        {
+                                            #region Move to TRASH Folder
+                                            cmd = new SqlCommand("select fld_uuid from folder_mast where fld_name='TRASH' and CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                            SqlDataAdapter adapter02 = new SqlDataAdapter(cmd);
+                                            adapter02.Fill(ds02);
+                                            if (ds02.Tables[0].Rows.Count > 0)
+                                            {
+                                                TargetFldUUID = ds02.Tables[0].Rows[0][0].ToString();
+                                            }
+                                            //create a reference from the second CMLCreate performed for space
+                                            Alfresco.RepositoryWebService.Reference referenceForTargetSpace = new Alfresco.RepositoryWebService.Reference();
+                                            referenceForTargetSpace.store = this.spacesStore;
+                                            referenceForTargetSpace.uuid = TargetFldUUID; // Selected folder's UUID
+
+                                            //reference for the target space
+                                            Alfresco.RepositoryWebService.ParentReference targetSpace = new Alfresco.RepositoryWebService.ParentReference();
+                                            targetSpace.store = this.spacesStore;
+                                            targetSpace.uuid = referenceForTargetSpace.uuid;
+                                            targetSpace.associationType = Constants.ASSOC_CONTAINS;
+                                            targetSpace.childName = GenNewDocName(MoveDocName); // Selected Doc's Name
+
+                                            cmd = new SqlCommand("update doc_mast set doc_name='" + targetSpace.childName + "', uuid='" + UUID + "',fld_uuid='" + TargetFldUUID + "',DocUpldType='D' where doc_id='" + Session["VSDoc"].ToString() + "'", con);
+                                            result = cmd.ExecuteNonQuery();
+
+                                            //move content
+                                            CMLMove move = new CMLMove();
+                                            move.where = sourcePredicate;
+                                            move.to = targetSpace;
+
+                                            CML cmlMove = new CML();
+                                            cmlMove.move = new CMLMove[] { move };
+
+                                            WebServiceFactory wsF = new WebServiceFactory();
+                                            wsF.UserName = Session["AdmUserID"].ToString();
+                                            wsF.Ticket = Session["AdmTicket"].ToString();
+                                            wsF.getRepositoryService().update(cmlMove);
+                                            // Alfresco Part End
+
+                                            folder_mast_bal OBJ_FolderBAL = new folder_mast_bal();
+                                            OBJ_FolderBAL.Labelid = UUID;
+
+                                            if (result > 0)
+                                            {
+                                                Utility.CloseConnection(con);
+                                                ds01.Reset();
+                                                ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
+                                                gvDocument.DataSource = ds01;
+                                                gvDocument.DataBind();
+                                                if (ds01.Tables[0].Rows.Count > 0)
+                                                {
+                                                    gvDocument.SelectedIndex = -1;
+                                                }
+                                                UpdatePanel4.Update();
+                                                Session["VSDoc"] = "";
+                                                throw new Exception("The Selected Document has been Deleted Successfully!!");
+                                            }
+                                            else
+                                            {
+                                                Utility.CloseConnection(con);
+                                                ds01.Reset();
+                                                ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
+                                                gvDocument.DataSource = ds01;
+                                                gvDocument.DataBind();
+                                                if (ds01.Tables[0].Rows.Count > 0)
+                                                {
+                                                    gvDocument.SelectedIndex = -1;
+                                                }
+                                                UpdatePanel4.Update();
+                                                Session["VSDoc"] = "";
+                                                throw new Exception("You have no Rights to Delete this Document!!");
+                                            }
+                                            #endregion
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                else if (mPDF == "0")
+                                {
+                                    #region For eForm Type Documents
+                                    cmd = new SqlCommand("delete from doc_mast where uuid='" + ds01.Tables[0].Rows[0][4].ToString() + "'", con);
+                                    int result1 = cmd.ExecuteNonQuery();
+                                    cmd = new SqlCommand("delete from UserRights where NodeUUID='" + ds01.Tables[0].Rows[0][4].ToString() + "'", con);
+                                    cmd.ExecuteNonQuery();
+                                    cmd = new SqlCommand("update ServerConfig set UsedSpace=UsedSpace-'" + Convert.ToDouble(ds01.Tables[0].Rows[0][24].ToString()) + "' where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                    cmd.ExecuteNonQuery();
+                                    cmd = new SqlCommand("update ServerConfig set AvailableSpace=TotalSpace - UsedSpace where CompCode='" + Session["CompCode"].ToString() + "'", con);
+                                    cmd.ExecuteNonQuery();
+                                    if (result1 > 0)
+                                    {
                                         Utility.CloseConnection(con);
                                         ds01.Reset();
                                         ds01 = ObjClassStoreProc.SelectDocsAllBasedOnFolder(Session["VSFld"].ToString(), Session["UserID"].ToString());
@@ -2618,7 +3201,7 @@ namespace DMS
                                         }
                                         UpdatePanel4.Update();
                                         Session["VSDoc"] = "";
-                                        throw new Exception("You have no Rights to Delete this Document!!");
+                                        throw new Exception("The Selected Document has been Deleted Successfully!!");
                                     }
                                     #endregion
                                 }

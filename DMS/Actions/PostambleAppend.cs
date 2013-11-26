@@ -80,7 +80,7 @@ namespace DMS.Actions
                     BeforeAppendDocUUID = dsPreAppend01.Tables[0].Rows[0][3].ToString();
                     ActualDocUUID = dsPreAppend01.Tables[0].Rows[0][2].ToString();
                 }
-                string Doc1 = DwnldFile(BeforeAppendDocUUID, AdminUserID, AdminLoginTicket);
+                string Doc1 = DwnldFile(BeforeAppendDocUUID, AdminUserID, AdminLoginTicket,CompCode);
                 string RWFOldFile = Doc1;
 
                 cmd = new SqlCommand("select * from wf_log_task where wf_log_id='" + WFLogID + "' and step_no='" + StepNo + "' and task_id='" + TaskID + "'", con);
@@ -90,7 +90,7 @@ namespace DMS.Actions
                 {
                     AppendDocUUID = ds02.Tables[0].Rows[0][8].ToString();
                 }
-                string Doc2 = DwnldFile(AppendDocUUID, AdminUserID, AdminLoginTicket);
+                string Doc2 = DwnldFile(AppendDocUUID, AdminUserID, AdminLoginTicket,CompCode);
                 RWFOldFile = Doc2;
                 string OutputFile = HttpContext.Current.Server.MapPath("TempDownload") + "\\";
                 QP.LoadFromFile(OutputFile + Doc1, "");
@@ -116,8 +116,8 @@ namespace DMS.Actions
 
                     double FileSize = 0;
 
-                    ds03 = ObjClassStoreProc.DocDetails(BeforeAppendDocUUID);
-                    ds0001 = ObjClassStoreProc.DocDetails(AppendDocUUID);
+                    ds03 = ObjClassStoreProc.DocDetails(BeforeAppendDocUUID,CompCode);
+                    ds0001 = ObjClassStoreProc.DocDetails(AppendDocUUID,CompCode);
                     FileSize = Convert.ToDouble(ds03.Tables[0].Rows[0][24].ToString()) + Convert.ToDouble(ds0001.Tables[0].Rows[0][24].ToString());
 
                     #region Upload into Alfresco
@@ -334,7 +334,7 @@ namespace DMS.Actions
             return ImageData; //return the byte data
         }
 
-        private string DwnldFile(string DocUUID, string AdminUserID, string AdminLoginTicket)
+        private string DwnldFile(string DocUUID, string AdminUserID, string AdminLoginTicket, string CompCode)
         {
             string DocExtension = "";
             DataSet dsDocDtls = new DataSet();
@@ -364,7 +364,7 @@ namespace DMS.Actions
             string url = downloadURL;
             ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
             dsDocDtls.Reset();
-            dsDocDtls = ObjClassStoreProc.DocDetails(DocUUID);
+            dsDocDtls = ObjClassStoreProc.DocDetails(DocUUID,CompCode);
 
             if (dsDocDtls.Tables[0].Rows.Count > 0)
             {

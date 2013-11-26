@@ -7,15 +7,15 @@ using System.Web.UI.WebControls;
 using DMS.BAL;
 using System.Data;
 using System.Data.SqlClient;
-using Alfresco;
-using Alfresco.RepositoryWebService;
-using Alfresco.ContentWebService;
 using System.IO;
 using DMS.UTILITY;
 using QuickPDFDLL0813;
 using System.Net;
 using System.Configuration;
 using DMS.Actions;
+using Alfresco;
+using Alfresco.RepositoryWebService;
+using Alfresco.ContentWebService;
 
 namespace DMS
 {
@@ -158,7 +158,7 @@ namespace DMS
                                 
                                 DataSet ds01 = new DataSet();
                                 ds01.Reset();
-                                ds01 = ObjClassStoreProc.DocDetails(Request.QueryString["CIDocUUID"].ToString());
+                                ds01 = ObjClassStoreProc.DocDetails(Request.QueryString["CIDocUUID"].ToString(), Session["CompCode"].ToString());
                                 if (ds01.Tables[0].Rows.Count > 0)
                                 {
                                     CIDocName = ds01.Tables[0].Rows[0][1].ToString();
@@ -259,7 +259,7 @@ namespace DMS
                     //Dept Setting
                     string mDeptName = "";
                     string mActualDocName = "";
-                    ds01 = ObjClassStoreProc.DocDetails(ActualFileUUID);
+                    ds01 = ObjClassStoreProc.DocDetails(ActualFileUUID, Session["CompCode"].ToString());
                     mActualDocName = ds01.Tables[0].Rows[0][1].ToString();
                     mDeptName=mActualDocName.Substring(0, mActualDocName.IndexOf('_'));
 
@@ -286,7 +286,7 @@ namespace DMS
                 }
                 //Doc Type Setting
                 ds01.Reset();
-                ds01 = ObjClassStoreProc.DocDetails(ActualFileUUID);
+                ds01 = ObjClassStoreProc.DocDetails(ActualFileUUID, Session["CompCode"].ToString());
                 ddDocType.SelectedValue = ds01.Tables[0].Rows[0][2].ToString();
                 FetchLocation(ddDept.SelectedValue, ddDocType.SelectedValue);
                 TagDisplay(ddDocType.SelectedValue);
@@ -2633,7 +2633,7 @@ namespace DMS
                         {
                             TotalFormFields = 300;
                         }
-                        result = ObjClassStoreProc.DocMetaValueInsert(DocUUID,Session["CompCode"].ToString());
+                        result = ObjClassStoreProc.DocMetaValueInsert(DocUUID,"",Session["CompCode"].ToString());
                         for (int k = 1; k <= TotalFormFields; k++)
                         {
                             DBFldName = "Tag" + k;
@@ -2889,7 +2889,7 @@ namespace DMS
             ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
             DataSet ds01 = new DataSet();
             ds01.Reset();
-            ds01 = ObjClassStoreProc.DocDetails(DocUUID);
+            ds01 = ObjClassStoreProc.DocDetails(DocUUID, Session["CompCode"].ToString());
             if (ds01.Tables[0].Rows.Count > 0)
             {
                 DocExtension = ObjFetchOnlyNameORExtension.FetchOnlyDocExt(ds01.Tables[0].Rows[0][1].ToString());

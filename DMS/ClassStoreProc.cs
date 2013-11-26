@@ -157,17 +157,20 @@ namespace DMS
             return ds;
         }
 
-        public DataSet DocDetails(string DocUUID)
+        public DataSet DocDetails(string DocUUID, string CompCode)
         {
             SqlConnection con = Utility.GetConnection();
             SqlCommand cmd = null;
             con.Open();
-            //select * from doc_mast where uuid=@DocUUID
+            //select a.*,b.doc_type_name,(c.f_name + ' ' + c.l_name + ' (' + c.email + ')') as UploadedBy,b.FormType from doc_mast a,doc_type_mast b, user_mast c where a.doc_type_id=b.doc_type_id and a.CompCode=b.CompCode and a.upld_by=c.user_id and a.uuid=@DocUUID and a.CompCode=@CompCode
             cmd = new SqlCommand("sp_DocDetailsPassingDocUUID", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.Add("@DocUUID", SqlDbType.NVarChar, 255);
             cmd.Parameters["@DocUUID"].Value = DocUUID;
+
+            cmd.Parameters.Add("@CompCode", SqlDbType.NVarChar, 8);
+            cmd.Parameters["@CompCode"].Value = CompCode;
 
             DataSet ds = new DataSet();
             SqlDataAdapter adapter = new SqlDataAdapter(cmd);
@@ -906,6 +909,24 @@ namespace DMS
             return ds;
         }
 
+        public DataSet eFormDocTypeCompBased(string CompCode)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            con.Open();
+            cmd = new SqlCommand("sp_eFormDocTypeCompBased", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@CompCode", SqlDbType.NVarChar, 8);
+            cmd.Parameters["@CompCode"].Value = CompCode;
+
+            DataSet ds = new DataSet();
+            SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+            adapter.Fill(ds);
+            Utility.CloseConnection(con);
+            return ds;
+        }
+
         public DataSet SelectCabinetAll(string CompCode,string UserID)
         {
             SqlConnection con = Utility.GetConnection();
@@ -1066,7 +1087,7 @@ namespace DMS
             SqlConnection con = Utility.GetConnection();
             SqlCommand cmd = null;
             con.Open();
-            //select a.*,b.doc_type_name,(c.f_name + ' ' + c.l_name + ' (' + c.user_id + ')') as UploadedBy from doc_mast a,doc_type_mast b, user_mast c where a.doc_type_id=b.doc_type_id and a.CompCode=b.CompCode and a.upld_by=c.user_id and a.doc_id=@DocID and a.CompCode=@CompCode
+            //select a.*,b.doc_type_name,(c.f_name + ' ' + c.l_name + ' (' + c.user_id + ')') as UploadedBy,b.FormType from doc_mast a,doc_type_mast b, user_mast c where a.doc_type_id=b.doc_type_id and a.CompCode=b.CompCode and a.upld_by=c.user_id and a.doc_id=@DocID and a.CompCode=@CompCode
             cmd = new SqlCommand("sp_DocDetailsSelectPassingDocID", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -1409,7 +1430,7 @@ namespace DMS
             return ds;
         }
 
-        public string DocMetaValueInsert(string DocUUID, string CompCode)
+        public string DocMetaValueInsert(string DocUUID, string eFormTemplateUUID, string CompCode)
         {
             SqlConnection con = Utility.GetConnection();
             SqlCommand cmd = null;
@@ -1419,6 +1440,9 @@ namespace DMS
 
             cmd.Parameters.Add("@DocUUID", SqlDbType.NVarChar, 255);
             cmd.Parameters["@DocUUID"].Value = DocUUID;
+
+            cmd.Parameters.Add("@eFormTemplateUUID", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@eFormTemplateUUID"].Value = eFormTemplateUUID;
 
             cmd.Parameters.Add("@CompCode", SqlDbType.NVarChar, 8);
             cmd.Parameters["@CompCode"].Value = CompCode;
@@ -3183,6 +3207,461 @@ namespace DMS
 
             Utility.CloseConnection(con);
             return UpdateStat;
+        }
+        #endregion
+
+        #region eForm
+        //public DataSet FormDetails(string FormID)
+        //{
+        //    SqlConnection con = Utility.GetConnection();
+        //    SqlCommand cmd = null;
+        //    con.Open();
+        //    DataSet ds_V01 = new DataSet();
+        //    cmd = new SqlCommand("select * from FormMaster where FormID='" + FormID + "'", con);
+        //    SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+        //    adapter_V01.Fill(ds_V01);
+        //    Utility.CloseConnection(con);
+        //    return ds_V01;
+
+        //    //SqlConnection con = Utility.GetConnection();
+        //    //SqlCommand cmd = null;
+        //    //con.Open();
+        //    ////select a.wf_log_id,a.wf_id,b.wf_name,c.doc_id,c.doc_name,a.wf_prog_stat,a.started_by from wf_log_mast a,wf_mast b,doc_mast c where a.wf_id=b.wf_id and a.doc_id=c.doc_id
+        //    //cmd = new SqlCommand("sp_Exam1", con);
+        //    //cmd.CommandType = CommandType.StoredProcedure;
+
+        //    //DataSet ds = new DataSet();
+        //    //SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+        //    //adapter.Fill(ds);
+        //    //Utility.CloseConnection(con);
+        //    //return ds;
+        //}
+
+        public DataSet ControlDetails(string DocUUID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            con.Open();
+            DataSet ds_V01 = new DataSet();
+            cmd = new SqlCommand("select * from ControlMaster where DocUUID='" + DocUUID + "' order by DocUUID,SerialNo", con);
+            SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V01);
+            Utility.CloseConnection(con);
+            return ds_V01;
+        }
+
+        public DataSet DropdownItems(string DocUUID, string ControlID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            con.Open();
+            DataSet ds_V01 = new DataSet();
+            cmd = new SqlCommand("select * from DropdownItems where DocUUID='" + DocUUID + "' and ControlID='" + ControlID + "' order by DocUUID,SerialNo,PopulateOrder", con);
+            SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V01);
+            Utility.CloseConnection(con);
+            return ds_V01;
+        }
+
+        public string InsertFormMaster(string FormName, string CreatedBy, DateTime CreatedOn)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_InsertFormMaster", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@FormName", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@FormName"].Value = FormName;
+
+            cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 20);
+            cmd.Parameters["@CreatedBy"].Value = CreatedBy;
+
+            cmd.Parameters.Add("@CreatedOn", SqlDbType.SmallDateTime);
+            cmd.Parameters["@CreatedOn"].Value = CreatedOn;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string InsertControlMaster(string DocUUID, int SerialNo, string LabelID, string ControlID, string ControlType, string LabelDesc, string DataType, int MaxLength, int MinVal, int MaxVal, string Formula, string Controls4Formula)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_InsertControlMaster", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@DocUUID", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@DocUUID"].Value = DocUUID;
+
+            cmd.Parameters.Add("@SerialNo", SqlDbType.Int);
+            cmd.Parameters["@SerialNo"].Value = SerialNo;
+
+            cmd.Parameters.Add("@LabelID", SqlDbType.NVarChar, 50);
+            cmd.Parameters["@LabelID"].Value = LabelID;
+
+            cmd.Parameters.Add("@ControlID", SqlDbType.NVarChar, 50);
+            cmd.Parameters["@ControlID"].Value = ControlID;
+
+            cmd.Parameters.Add("@ControlType", SqlDbType.NVarChar, 1);
+            cmd.Parameters["@ControlType"].Value = ControlType;
+
+            cmd.Parameters.Add("@LabelDesc", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@LabelDesc"].Value = LabelDesc;
+
+            cmd.Parameters.Add("@DataType", SqlDbType.NVarChar, 50);
+            cmd.Parameters["@DataType"].Value = DataType;
+
+            cmd.Parameters.Add("@MaxLength", SqlDbType.Int);
+            cmd.Parameters["@MaxLength"].Value = MaxLength;
+
+            cmd.Parameters.Add("@MinVal", SqlDbType.Int);
+            cmd.Parameters["@MinVal"].Value = MinVal;
+
+            cmd.Parameters.Add("@MaxVal", SqlDbType.Int);
+            cmd.Parameters["@MaxVal"].Value = MaxVal;
+
+            cmd.Parameters.Add("@Formula", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@Formula"].Value = Formula;
+
+            cmd.Parameters.Add("@Controls4Formula", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@Controls4Formula"].Value = Controls4Formula;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string InsertDropdownItems(string DocUUID, int SerialNo, string ControlID, int PopulateOrder, string Item)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_InsertDropdownItems", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@DocUUID", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@DocUUID"].Value = DocUUID;
+
+            cmd.Parameters.Add("@SerialNo", SqlDbType.Int);
+            cmd.Parameters["@SerialNo"].Value = SerialNo;
+
+            cmd.Parameters.Add("@ControlID", SqlDbType.NVarChar, 50);
+            cmd.Parameters["@ControlID"].Value = ControlID;
+
+            cmd.Parameters.Add("@PopulateOrder", SqlDbType.Int);
+            cmd.Parameters["@PopulateOrder"].Value = PopulateOrder;
+
+            cmd.Parameters.Add("@Item", SqlDbType.NVarChar, 100);
+            cmd.Parameters["@Item"].Value = Item;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string DeleteForm(int FormID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_DeleteForm", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@FormID", SqlDbType.BigInt);
+            cmd.Parameters["@FormID"].Value = FormID;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string InsertFormWithData(int TemplateFormID, string FormName, string CreatedBy, DateTime CreatedOn)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_InsertFormWithData", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@TemplateFormID", SqlDbType.BigInt);
+            cmd.Parameters["@TemplateFormID"].Value = TemplateFormID;
+
+            cmd.Parameters.Add("@FormName", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@FormName"].Value = FormName;
+
+            cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 20);
+            cmd.Parameters["@CreatedBy"].Value = CreatedBy;
+
+            cmd.Parameters.Add("@CreatedOn", SqlDbType.SmallDateTime);
+            cmd.Parameters["@CreatedOn"].Value = CreatedOn;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string DeleteFormWithData(int AutoID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_DeleteFormWithData", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@AutoID", SqlDbType.BigInt);
+            cmd.Parameters["@AutoID"].Value = AutoID;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public DataSet DocMetaValueDetails(string DocUUID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            con.Open();
+            DataSet ds_V01 = new DataSet();
+            cmd = new SqlCommand("select * from DocMetaValue where uuid='" + DocUUID + "'", con);
+            SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V01);
+            Utility.CloseConnection(con);
+            return ds_V01;
+        }
+
+        public string UpdateFormWithData(int AutoID, string FormName, string UpdatedBy, DateTime UpdatedOn)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_UpdateFormWithData", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@AutoID", SqlDbType.BigInt);
+            cmd.Parameters["@AutoID"].Value = AutoID;
+
+            cmd.Parameters.Add("@FormName", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@FormName"].Value = FormName;
+
+            cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 20);
+            cmd.Parameters["@UpdatedBy"].Value = UpdatedBy;
+
+            cmd.Parameters.Add("@UpdatedOn", SqlDbType.SmallDateTime);
+            cmd.Parameters["@UpdatedOn"].Value = UpdatedOn;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string UpdateFormMaster(int FormID, string FormName, string CreatedBy, DateTime CreatedOn, string UpdatedBy, DateTime UpdatedOn)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            //cmd = new SqlCommand("sp_UpdateFormMaster", con);
+            //cmd.CommandType = CommandType.StoredProcedure;
+
+            //cmd.Parameters.Add("@FormID", SqlDbType.BigInt);
+            //cmd.Parameters["@FormID"].Value = FormID;
+
+            //cmd.Parameters.Add("@FormName", SqlDbType.NVarChar, 255);
+            //cmd.Parameters["@FormName"].Value = FormName;
+
+            //cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 20);
+            //cmd.Parameters["@CreatedBy"].Value = CreatedBy;
+
+            //cmd.Parameters.Add("@CreatedOn", SqlDbType.SmallDateTime);
+            //cmd.Parameters["@CreatedOn"].Value = CreatedOn;
+
+            //cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 20);
+            //cmd.Parameters["@UpdatedBy"].Value = UpdatedBy;
+
+            //cmd.Parameters.Add("@UpdatedOn", SqlDbType.SmallDateTime);
+            //cmd.Parameters["@UpdatedOn"].Value = UpdatedOn;
+
+            //SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            //param.Direction = ParameterDirection.Output;
+            string Output = "";
+            con.Open();
+            DataSet ds_V01 = new DataSet();
+            ds_V01.Reset();
+            cmd = new SqlCommand("select * from FormWithData where TemplateFormID = '" + FormID + "'", con);
+            SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V01);
+            if (ds_V01.Tables[0].Rows.Count > 0)
+            {
+                //insert
+                ds_V01.Reset();
+                cmd = new SqlCommand("select * from FormMaster where FormName = '" + FormName + "'", con);
+                SqlDataAdapter adapter_V02 = new SqlDataAdapter(cmd);
+                adapter_V02.Fill(ds_V01);
+                if (ds_V01.Tables[0].Rows.Count > 0)
+                {
+                    Utility.CloseConnection(con);
+                    Output = "-3";
+                }
+                else
+                {
+                    Utility.CloseConnection(con);
+                    Output = InsertFormMaster(FormName, CreatedBy, CreatedOn);
+                }
+            }
+            else
+            {
+                //update
+                ds_V01.Reset();
+                cmd = new SqlCommand("select * from FormMaster where FormName = '" + FormName + "' and FormID!= '" + FormID + "'", con);
+                SqlDataAdapter adapter_V02 = new SqlDataAdapter(cmd);
+                adapter_V02.Fill(ds_V01);
+                if (ds_V01.Tables[0].Rows.Count > 0)
+                {
+                    Utility.CloseConnection(con);
+                    Output = "-2";
+                }
+                else
+                {
+                    cmd = new SqlCommand("update FormMaster set FormName='" + FormName + "',UpdatedBy='" + UpdatedBy + "',UpdatedOn='" + UpdatedOn + "' where FormID='" + FormID + "'", con);
+                    cmd.ExecuteNonQuery();
+                    Utility.CloseConnection(con);
+                    Output = "-1";
+                }
+            }
+            return Output;
+        }
+
+        public string UpdateeFormMaster(string eFormTemplateUUID, string eFormTemplateName, string CreatedBy, DateTime CreatedOn, string CompCode)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            string Output = "";
+            con.Open();
+            DataSet ds_V01 = new DataSet();
+            DataSet ds_V02 = new DataSet();
+
+            ds_V02.Reset();
+            cmd = new SqlCommand("select * from doc_mast where uuid = '" + eFormTemplateUUID + "'", con);
+            SqlDataAdapter adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V02);
+
+            ds_V01.Reset();
+            cmd = new SqlCommand("select * from DocMetaValue where eFormTemplateUUID = '" + eFormTemplateUUID + "'", con);
+            adapter_V01 = new SqlDataAdapter(cmd);
+            adapter_V01.Fill(ds_V01);
+            if (ds_V01.Tables[0].Rows.Count > 0)
+            {
+                //insert
+                ds_V01.Reset();
+                cmd = new SqlCommand("select * from doc_mast where doc_name = '" + eFormTemplateName + "' and fld_uuid='" + ds_V02.Tables[0].Rows[0][5].ToString() + "'", con);
+                SqlDataAdapter adapter_V02 = new SqlDataAdapter(cmd);
+                adapter_V02.Fill(ds_V01);
+                if (ds_V01.Tables[0].Rows.Count > 0)
+                {
+                    Utility.CloseConnection(con);
+                    Output = "-3";
+                }
+                else
+                {
+                    Utility.CloseConnection(con);
+                    string AutoGenID = Guid.NewGuid().ToString();
+                    Output = InsertDocMast(eFormTemplateName, ds_V02.Tables[0].Rows[0][20].ToString(), ds_V02.Tables[0].Rows[0][5].ToString(), ds_V02.Tables[0].Rows[0][2].ToString(), ds_V02.Tables[0].Rows[0][3].ToString(), CreatedBy, CreatedOn, "", "", "", "", "", "", "", "", "", "", "", AutoGenID, "", "E", CompCode, 0);
+                    if (Convert.ToInt32(Output) > 0)
+                    {
+                        Output = AutoGenID;
+                    }
+                }
+            }
+            else
+            {
+                //update
+                ds_V01.Reset();
+                cmd = new SqlCommand("select * from doc_mast where doc_name = '" + eFormTemplateName + "' and fld_uuid='" + ds_V02.Tables[0].Rows[0][5].ToString() + "' and uuid!= '" + eFormTemplateUUID + "'", con);
+                SqlDataAdapter adapter_V02 = new SqlDataAdapter(cmd);
+                adapter_V02.Fill(ds_V01);
+                if (ds_V01.Tables[0].Rows.Count > 0)
+                {
+                    Utility.CloseConnection(con);
+                    Output = "-2";
+                }
+                else
+                {
+                    cmd = new SqlCommand("update doc_mast set doc_name='" + eFormTemplateName + "',upld_by='" + CreatedBy + "',upld_dt='" + CreatedOn + "' where uuid='" + eFormTemplateUUID + "'", con);
+                    cmd.ExecuteNonQuery();
+                    Utility.CloseConnection(con);
+                    Output = "-1";
+                }
+            }
+            return Output;
+        }
+
+        public string DeleteControlMaster(string eFormTemplateUUID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_DeleteControlMaster", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@eFormTemplateUUID", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@eFormTemplateUUID"].Value = eFormTemplateUUID;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
+        }
+
+        public string DeleteDropdownItems(string eFormTemplateUUID)
+        {
+            SqlConnection con = Utility.GetConnection();
+            SqlCommand cmd = null;
+            cmd = new SqlCommand("sp_DeleteDropdownItems", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@eFormTemplateUUID", SqlDbType.NVarChar, 255);
+            cmd.Parameters["@eFormTemplateUUID"].Value = eFormTemplateUUID;
+
+            SqlParameter param = cmd.Parameters.Add("@iApplicationID", SqlDbType.Int);
+            param.Direction = ParameterDirection.Output;
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            Utility.CloseConnection(con);
+
+            return param.Value.ToString();
         }
         #endregion
 

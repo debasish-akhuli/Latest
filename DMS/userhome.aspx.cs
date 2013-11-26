@@ -250,10 +250,8 @@ namespace DMS
                     SqlConnection con = Utility.GetConnection();
                     SqlCommand cmd = null;
                     DataSet ds01 = new DataSet();
-                    DataSet ds02 = new DataSet();
                     string NewVersionDocUUID = "";
                     string DocURL = "";
-                    con.Open();
 
                     string LicenseKey = "";
                     string ServerIPAddress = "";
@@ -270,18 +268,37 @@ namespace DMS
                     // Fetch ServerConfig Details End
 
                     string ActDocUUID = "";
+                    con.Open();
                     cmd = new SqlCommand("select top 1 * from WFDocVersion where WFLogID='" + Session["WFUpdtWFLogID"].ToString() + "' and StepNo='" + Session["WFUpdtStepNo"].ToString() + "'", con);
                     SqlDataAdapter adapter02 = new SqlDataAdapter(cmd);
-                    adapter02.Fill(ds02);
-                    if (ds02.Tables[0].Rows.Count > 0)
+                    ds01.Reset();
+                    adapter02.Fill(ds01);
+                    con.Close();
+                    if (ds01.Tables[0].Rows.Count > 0)
                     {
-                        NewVersionDocUUID = ds02.Tables[0].Rows[0][3].ToString();
-                        ActDocUUID = ds02.Tables[0].Rows[0][2].ToString();
+                        NewVersionDocUUID = ds01.Tables[0].Rows[0][3].ToString();
+                        ActDocUUID = ds01.Tables[0].Rows[0][2].ToString();
                     }
                     //DocURL = DwnldFile(NewVersionDocUUID);
-                    DocURL = DwnldFile(ActDocUUID);
-                    Session["hfPageControl"] = "R";
-                    Response.Redirect("FormFill.aspx?docname=" + DocURL + "&DocUUID=" + ActDocUUID + "&AttachedDocUUID=" + ActDocUUID, false);
+
+                    #region Checking the attached doc is eForm or not
+                    ds01.Reset();
+                    ds01 = ObjClassStoreProc.DocDetails(ActDocUUID,Session["CompCode"].ToString());
+                    if (ds01.Tables[0].Rows.Count > 0)
+                    {
+                        if (ds01.Tables[0].Rows[0][27].ToString() == "eForm")
+                        {
+                            Session["hfPageControl"] = "R";
+                            Response.Redirect("eFormWFL.aspx?DocUUID=" + ActDocUUID, false);
+                        }
+                        else
+                        {
+                            DocURL = DwnldFile(ActDocUUID);
+                            Session["hfPageControl"] = "R";
+                            Response.Redirect("FormFill.aspx?docname=" + DocURL + "&DocUUID=" + ActDocUUID + "&AttachedDocUUID=" + ActDocUUID, false);
+                        }
+                    }
+                    #endregion
                 }
             }
             catch (Exception ex)
@@ -842,7 +859,7 @@ namespace DMS
             string url = downloadURL;
             ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
             dsDocDtls.Reset();
-            dsDocDtls = ObjClassStoreProc.DocDetails(DocUUID);
+            dsDocDtls = ObjClassStoreProc.DocDetails(DocUUID, Session["CompCode"].ToString());
 
             if (dsDocDtls.Tables[0].Rows.Count > 0)
             {

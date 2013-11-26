@@ -83,9 +83,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -100,11 +99,6 @@
                                             </ul>
                                         </li>
                                         <li><a href="workflow_mast.aspx">Workflow Definition</a></li>
-                                            <%--<ul class="drop1 hide">
-                                                <li><a href="task_mast.aspx">Task</a></li>
-                                                <li><a href="workflow_mast.aspx" class="nob">Workflow Definition</a></li>
-                                            </ul>
-                                        </li>--%>
                                         <li><a href="reset_pwd.aspx">Reset Password</a></li>
                                         <li><a href="mail_setup.aspx">Mail Setup</a></li>
                                         <li><a href="CompWiseStatistics.aspx">Statistics</a></li>
@@ -127,9 +121,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -162,6 +155,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>

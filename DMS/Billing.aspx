@@ -72,9 +72,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -111,9 +110,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -146,6 +144,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>
@@ -168,34 +167,6 @@
             <div class="normal_common">
                 <div class="wf_mas_doc_holder" style="min-height:300px;">
                     <div class="wf_mas_doc_holder_padd">
-                        <%--<div class="normal_common">
-                            <span class="wf_mas_cap">Month & Year</span>
-                            <asp:DropDownList ID="ddMonth" CssClass="wf_det_field2" runat="server" AutoPostBack="true" onselectedindexchanged="ddMonth_SelectedIndexChanged">
-                                <asp:ListItem Value="01" Text="January"></asp:ListItem>
-                                <asp:ListItem Value="02" Text="February"></asp:ListItem>
-                                <asp:ListItem Value="03" Text="March"></asp:ListItem>
-                                <asp:ListItem Value="04" Text="April"></asp:ListItem>
-                                <asp:ListItem Value="05" Text="May"></asp:ListItem>
-                                <asp:ListItem Value="06" Text="June"></asp:ListItem>
-                                <asp:ListItem Value="07" Text="July"></asp:ListItem>
-                                <asp:ListItem Value="08" Text="August"></asp:ListItem>
-                                <asp:ListItem Value="09" Text="September"></asp:ListItem>
-                                <asp:ListItem Value="10" Text="October"></asp:ListItem>
-                                <asp:ListItem Value="11" Text="November"></asp:ListItem>
-                                <asp:ListItem Value="12" Text="December"></asp:ListItem>
-                            </asp:DropDownList>
-                            <asp:DropDownList ID="ddYear" CssClass="wf_det_field2" runat="server" AutoPostBack="true" onselectedindexchanged="ddYear_SelectedIndexChanged">
-                                <asp:ListItem Value="2012" Text="2012"></asp:ListItem>
-                                <asp:ListItem Value="2013" Text="2013"></asp:ListItem>
-                                <asp:ListItem Value="2014" Text="2014"></asp:ListItem>
-                                <asp:ListItem Value="2015" Text="2015"></asp:ListItem>
-                                <asp:ListItem Value="2016" Text="2016"></asp:ListItem>
-                                <asp:ListItem Value="2017" Text="2017"></asp:ListItem>
-                                <asp:ListItem Value="2018" Text="2018"></asp:ListItem>
-                                <asp:ListItem Value="2019" Text="2019"></asp:ListItem>
-                                <asp:ListItem Value="2020" Text="2020"></asp:ListItem>
-                            </asp:DropDownList>
-                        </div>--%>
                         <div class="normal_common">
                             <table border="1" cellpadding="0" cellspacing="0" width="50%" style="margin:0 auto;">
                                 <tr>
@@ -264,7 +235,11 @@
                                 </tr>
                             </table>
                         </div>
-
+                        <div class="normal_common" style="padding-top:20px;">
+                            <span class="wf_det_add_holder">
+                                <asp:Button ID="cmdViewDocList" runat="server" CssClass="wf_mas_add" Text="View Details" onclick="cmdViewDocList_Click" />
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

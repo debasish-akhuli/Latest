@@ -202,7 +202,7 @@ namespace DMS
                         if (Session["URLDocUUID"].ToString() != "")
                         {
                             ds01.Reset();
-                            ds01 = ObjClassStoreProc.DocDetails(Session["URLDocUUID"].ToString());
+                            ds01 = ObjClassStoreProc.DocDetails(Session["URLDocUUID"].ToString(), Session["CompCode"].ToString());
                             if (ds01.Tables[0].Rows.Count > 0)
                             {
                                 Session["VSDocName"] = ds01.Tables[0].Rows[0][1].ToString();

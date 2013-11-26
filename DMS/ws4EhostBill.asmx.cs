@@ -172,7 +172,7 @@ namespace DMS
                     #endregion
 
                     #region DocType
-                    result = ObjClassStoreProc.InsertDocTypeMast("GENERAL", "General", "", "", "", "", "", "", "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CompCode, "Other");
+                    result = ObjClassStoreProc.InsertDocTypeMast("GENERAL", "General", "", "", "", "", "", "", "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CompCode, "Non Editable");
                     #endregion
 
                     #region Role

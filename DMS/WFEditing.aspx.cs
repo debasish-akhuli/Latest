@@ -872,7 +872,7 @@ namespace DMS
                     ds01.Reset();
                     ds01 = ObjClassStoreProc.WFTaskDetails(Convert.ToInt32(WFID), Convert.ToInt32(StepNo), TaskID);
                     ds02.Reset();
-                    ds02 = ObjClassStoreProc.DocDetails(ds01.Tables[0].Rows[0][8].ToString());
+                    ds02 = ObjClassStoreProc.DocDetails(ds01.Tables[0].Rows[0][8].ToString(), Session["CompCode"].ToString());
                     string DocUUID = ds02.Tables[0].Rows[0][4].ToString();
                     string FolderUUID = ds02.Tables[0].Rows[0][5].ToString();
 

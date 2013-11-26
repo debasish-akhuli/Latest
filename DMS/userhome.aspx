@@ -46,15 +46,6 @@
             document.getElementById("divRejectHistLoading").style.display = 'none';
             document.getElementById("divRejectHist").style.display = 'none';
         }
-        function showLoading() {
-            document.getElementById("dvLoading1").style.display = 'block';
-            document.getElementById("dvLoading2").style.display = 'block';
-        }
-        function hideLoading() {
-            document.getElementById("dvLoading1").style.display = 'none';
-            document.getElementById("dvLoading2").style.display = 'none';
-            return true;
-        }
     </script>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -89,19 +80,6 @@
             $(".dropmain2 li").mouseout(function () {
                 $(this).children('ul.dropmain3').addClass('g_hide');
                 $(this).children('ul.dropmain3').removeClass('g_show');
-            });
-            $(".RedirectHL").click(function () {
-                $('#def').hide();
-                $('#red').show();
-                $(this).hide();
-                return false;
-            });
-            $("#close2").click(function () {
-                $('#def').show();
-                $('#red').hide();
-                $('#dvLoading1').hide();
-                $('#dvLoading2').hide();
-                $('.RedirectHL').show();
             });
         });           
     </script>
@@ -200,7 +178,6 @@
             }
         }
         function StartOnloading() {
-            hideLoading();
             startTimer();
         }
         function RecentDocs(TempDocName) {
@@ -272,9 +249,8 @@
                                                 <li><a href="folder_mast.aspx">Folder</a></li>
                                                 <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                                 <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                                <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                                 <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                                <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                                <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                             </ul>
                                         </li>
                                         <li class="drop_nav"><a href="#">System</a>
@@ -311,9 +287,8 @@
                                                 <li><a href="folder_mast.aspx">Folder</a></li>
                                                 <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                                 <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                                <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                                 <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                                <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                                <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                             </ul>
                                         </li>
                                         <li class="drop_nav"><a href="#">System</a>
@@ -346,6 +321,7 @@
                                             <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                             <li><a href="drawer_mast.aspx">Drawer</a></li>
                                             <li><a href="folder_mast.aspx">Folder</a></li>
+                                            <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                             <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                         </ul>
                                         </li>

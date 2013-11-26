@@ -490,6 +490,11 @@
             startTimer();
         }
 
+        function eFormProcess(DocID) {
+            var jsVar = "eFormProcess";
+            document.getElementById("<%= hfSelDocID.ClientID %>").value = DocID.toString();
+            __doPostBack5('callPostBack5', jsVar);
+        }
         function DocDownld(DocID) {
             var jsVar = "DownldDoc";
             document.getElementById("<%= hfSelDocID.ClientID %>").value = DocID.toString();
@@ -524,23 +529,23 @@
             <input type="hidden" name="__EVENTARGUMENT1" value="" />
             <input type="hidden" name="__EVENTTARGET2" value="" />
             <input type="hidden" name="__EVENTARGUMENT2" value="" />
-            <asp:ScriptManager ID="ScriptManager1" runat="server" />
+            <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
             <%--For Session Expired Start--%>
-            <div id="ExtendSessionLifeBox2" style="width: 100%; z-index: 10000; height: 100%;
-                opacity: .2; filter: alpha(opacity=20); background: #660066; display: none;">
+            <div id="ExtendSessionLifeBox2" style="width:100%; z-index:10000; height:100%;
+                opacity:.2; filter:alpha(opacity=20); background:#660066; display:none;">
             </div>
-            <asp:Panel ID="ExtendSessionLifeBox" runat="server" Style="height: 100px; z-index: 10001;
-                width: 250px; background-color: #660066; padding: 20px; color: #fff; border: solid 1px #666;
-                display: none; position: absolute;">
-                <div style="width: 100%; float: left">
+            <asp:Panel ID="ExtendSessionLifeBox" runat="server" Style="height:100px; z-index:10001;
+                width:250px; background-color:#660066; padding:20px; color:#fff; border:solid 1px #666;
+                display:none; position:absolute;">
+                <div style="width:100%; float: left">
                     <asp:Label ID="ExtendSessionLifePrompt" runat="server" Text="Your session is going to expire in 10 minutes. Would you like to extend your Session for another 60 minutes?"></asp:Label>
                 </div>
-                <div style="width: 100%; float: left">
+                <div style="width:100%; float:left">
                     <div id="countDown">
                     </div>
                 </div>
-                <div style="width: 100%; float: left; padding-top: 20px;">
-                    <div style="float: left; padding-right: 20px;">
+                <div style="width:100%; float:left; padding-top:20px;">
+                    <div style="float:left; padding-right:20px;">
                         <asp:UpdatePanel ID="up1" runat="server">
                             <ContentTemplate>
                                 <asp:Button ID="ExtendSessionLife" runat="server" Text="Yes" OnClientClick="startTimer(); return true;" />
@@ -557,10 +562,16 @@
                 <%--<a href="#">
                     <img src="images/logo.jpg" width="286" height="88" alt="" border="0" /></a>--%></div>
             <h1>
-                <a href="userhome.aspx" style="border: none; text-decoration: none; outline: none;">
+                <a href="userhome.aspx" style="border:none; text-decoration:none; outline:none;">
                     <img src="images/product_logo.png" border="0" alt="" /></a></h1>
         </div>
     </div>
+    <asp:UpdateProgress ID="UpdateProgress1" runat="server">
+        <ProgressTemplate>
+            <div style="position:fixed; width:1019px; height:100%; background:#999; opacity:.3; filter:alpha(opacity=30); z-index:103;"></div>
+            <div style="width:100px; height:100px; position:absolute; top:50%; left:47%; z-index:104;"><asp:Image runat="server" ID="imgBusy" ImageUrl="images/busy.gif" /></div>
+        </ProgressTemplate>
+    </asp:UpdateProgress>
     <div class="main_body">
         <div class="main">
             <div class="normal_common">
@@ -578,9 +589,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -617,9 +627,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -652,6 +661,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>
@@ -1248,6 +1258,7 @@
                 background: url(images/ui-bg_diagonals-thick_20_666666_40x40.png); left: 0px;
                 top: 0px; opacity: .6; filter: alpha(opacity=60); z-index: 101; font-size: 100px;">
             </div>
+            
             <div id="divMail" style="width: 100%; display: none; min-height: 200px; position: fixed;
                 top: 40px; left: 0px; z-index: 1002;">
                 <div style="width: 600px; margin: 0 auto; top: 0px; position: relative;">

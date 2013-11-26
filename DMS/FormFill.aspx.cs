@@ -55,23 +55,21 @@ namespace DMS
                     Page.Header.DataBind();
                     if (Session["UserID"] != null && Session["Ticket"] != null)
                     {
+                        lblUser.Text = Session["UserFullName"].ToString();
                         if (Session["UserType"].ToString() == "S") // Super Admin
                         {
-                            lblUser.Text = Session["UserFullName"].ToString();
                             divMenuSuperAdmin.Visible = true;
                             divMenuAdmin.Visible = false;
                             divMenuNormal.Visible = false;
                         }
                         else if (Session["UserType"].ToString() == "A") // Admin
                         {
-                            lblUser.Text = Session["UserFullName"].ToString();
                             divMenuSuperAdmin.Visible = false;
                             divMenuAdmin.Visible = true;
                             divMenuNormal.Visible = false;
                         }
                         else
                         {
-                            lblUser.Text = Session["UserFullName"].ToString();
                             divMenuSuperAdmin.Visible = false;
                             divMenuAdmin.Visible = false;
                             divMenuNormal.Visible = true;
@@ -371,7 +369,7 @@ namespace DMS
                         DataSet ds0002 = new DataSet();
                         ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
                         ds0002.Reset();
-                        ds0002 = ObjClassStoreProc.DocDetails(Request.QueryString["AttachedDocUUID"].ToString());
+                        ds0002 = ObjClassStoreProc.DocDetails(Request.QueryString["AttachedDocUUID"].ToString(), Session["CompCode"].ToString());
 
                         if (ds0002.Tables[0].Rows.Count > 0)
                         {
@@ -561,7 +559,7 @@ namespace DMS
                 ClassStoreProc ObjClassStoreProc = new ClassStoreProc();
                 FetchOnlyNameORExtension ObjFetchOnlyNameORExtension = new FetchOnlyNameORExtension();
                 ds0002.Reset();
-                ds0002 = ObjClassStoreProc.DocDetails(Session["SelDocUUID"].ToString());
+                ds0002 = ObjClassStoreProc.DocDetails(Session["SelDocUUID"].ToString(), Session["CompCode"].ToString());
 
                 if (ds0002.Tables[0].Rows.Count > 0)
                 {

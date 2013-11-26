@@ -206,33 +206,38 @@
 </div>
     <div>
 
-        <asp:ScriptManager ID="ScriptManager1" runat="server">
+    <asp:ScriptManager ID="ScriptManager1" runat="server">
     </asp:ScriptManager>
     <%--For Session Expired Start--%>
-    <div id="ExtendSessionLifeBox2" style=" width:100%; z-index:10000; height:100%; opacity:.2; filter:alpha(opacity=20); background:#660066; display:none;">
+    <div id="ExtendSessionLifeBox2" style="width:100%; z-index:10000; height:100%; opacity:.2; filter:alpha(opacity=20); background:#660066; display:none;">
        </div>
     <asp:Panel ID="ExtendSessionLifeBox" runat="server" style="height:100px; z-index:10001; width:250px; background-color:#660066; padding:20px; color:#fff; border:solid 1px #666; display:none; position:absolute;">
-   <div style=" width:100%; float:left">
-  <asp:Label ID="ExtendSessionLifePrompt" runat="server" Text="Your session is going to expire in 10 minutes. Would you like to extend your Session for another 60 minutes?"></asp:Label>
-  </div>
-  <div style=" width:100%; float:left">
-  <div id="countDown"></div>
-  </div>
-  <div style=" width:100%; float:left; padding-top:20px;">
-  <div style=" float:left; padding-right:20px;">
-  <asp:UpdatePanel ID="up1" runat="server" >
-  <ContentTemplate>
-  <asp:Button ID="ExtendSessionLife" runat="server" Text="Yes" OnClientClick="startTimer(); return true;"/>
-  </ContentTemplate>
-  </asp:UpdatePanel>
-  </div>
-  <div style=" float:left">
-  <input type="button" id="CancelExtendSessionLife" value="No" onclick="CloseExtendSessionLifeBox(); return false;" />  
-  </div>
-  </div>
-  
-</asp:Panel>
+    <div style="width:100%; float:left">
+    <asp:Label ID="ExtendSessionLifePrompt" runat="server" Text="Your session is going to expire in 10 minutes. Would you like to extend your Session for another 60 minutes?"></asp:Label>
+    </div>
+    <div style="width:100%; float:left">
+    <div id="countDown"></div>
+    </div>
+    <div style="width:100%; float:left; padding-top:20px;">
+    <div style="float:left; padding-right:20px;">
+    <asp:UpdatePanel ID="up1" runat="server" >
+    <ContentTemplate>
+    <asp:Button ID="ExtendSessionLife" runat="server" Text="Yes" OnClientClick="startTimer(); return true;"/>
+    </ContentTemplate>
+    </asp:UpdatePanel>
+    </div>
+    <div style=" float:left">
+    <input type="button" id="CancelExtendSessionLife" value="No" onclick="CloseExtendSessionLifeBox(); return false;" />  
+    </div>
+    </div>
+    </asp:Panel>
 <%--For Session Expired End--%>
+    <asp:UpdateProgress ID="UpdateProgress1" runat="server">
+        <ProgressTemplate>
+            <div style="position:fixed; width:1019px; height:100%; background:#999; opacity:.3; filter:alpha(opacity=30); z-index:103;"></div>
+            <div style="width:100px; height:100px; position:absolute; top:50%; left:47%; z-index:104;"><asp:Image runat="server" ID="imgBusy" ImageUrl="images/busy.gif" /></div>
+        </ProgressTemplate>
+    </asp:UpdateProgress>
     <div class="main_body">
         <div class="main">
             <asp:HiddenField ID="hfSelDocID" runat="server" />
@@ -253,9 +258,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -292,9 +296,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -327,6 +330,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>
@@ -548,8 +552,8 @@
                         </div>
 
                     </div>
-                </div>
-                </div>
+        </div>
+    </div>
             </div>
 
                         

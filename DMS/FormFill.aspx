@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="UserMaster.Master" AutoEventWireup="true" CodeBehind="FormFill.aspx.cs" Inherits="DMS.FormFill" %>
+﻿<%@ Page Title="myDOCbase" Language="C#" MasterPageFile="UserMaster.Master" AutoEventWireup="true" CodeBehind="FormFill.aspx.cs" Inherits="DMS.FormFill" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script type="text/javascript" src="js/jquary_min.js"></script>
     <script type="text/javascript">
@@ -120,9 +120,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -159,9 +158,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -194,6 +192,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>
@@ -413,7 +412,6 @@
                                                 <asp:Button ID="cmdUpdate" runat="server" CssClass="TaskUpdtBtn" Text="Update" onclick="cmdUpdate_Click" />
                                                 <span style="float:left; margin-left:20px;">
                                                     <input type="button" id="cmdRedirect" class="wf_mas_add" onclick="javascript: OpenRedirect();" value="Redirect" />
-                                                    <%--<asp:Button ID="cmdRedirect" runat="server" CssClass="wf_mas_add" Text="Redirect" OnClientClick="javascript: OpenRedirect();" />--%>
                                                 </span>
                                             </div>
                                         </div>

@@ -111,7 +111,25 @@ namespace DMS
                             {
                                 Session["OpenDocName"] = ds01.Tables[0].Rows[0][1].ToString();
                                 Session["OpenDocUUID"] = ds01.Tables[0].Rows[0][4].ToString();
-                                ViewDoc(Session["OpenDocUUID"].ToString());
+                                string FormType = "";
+                                FormType = ds01.Tables[0].Rows[0][27].ToString();
+                                if (FormType == "eForm")
+                                {
+                                    string DocExtension = "";
+                                    DocExtension = ds01.Tables[0].Rows[0][1].ToString().Substring(ds01.Tables[0].Rows[0][1].ToString().Length - 4, 4);
+                                    if (DocExtension == ".pdf")
+                                    {
+                                        ViewDoc(Session["OpenDocUUID"].ToString());
+                                    }
+                                    else
+                                    {
+                                        Response.Redirect("eFormOpening.aspx?DocID=" + hfSelDocID.Value, false);
+                                    }
+                                }
+                                else
+                                {
+                                    ViewDoc(Session["OpenDocUUID"].ToString());
+                                }
                             }
                         }
                     }

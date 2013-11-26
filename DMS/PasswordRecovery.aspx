@@ -25,7 +25,7 @@
                     </div>
                     <div style=" margin:0 auto; width:330px; margin-top:50px;">
                         <div style=" width:100%; float:left; margin-bottom:10px;">
-                            <div style=" float:left; width:120px; font-weight:bold;">Enter Your Mail ID</div>
+                            <div style=" float:left; width:120px; font-weight:bold;">Enter Your Email ID</div>
                             <div style=" float:left;">
                                 <asp:TextBox ID="txtMail" CssClass="input_field" runat="server" Text=""></asp:TextBox>
                                 <span style="padding-left:5px; float:left; font-weight:bold; font-size:24px; color:Red;">*</span>

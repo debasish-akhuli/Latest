@@ -27,7 +27,7 @@ namespace DMS
                     // Set the session variables blank which are used to set the previous selected path end
                     if (Session["UserID"] != null && Session["Ticket"] != null)
                     {
-                        if (Session["UserType"].ToString() == "A") // Super Admin
+                        if (Session["UserType"].ToString() == "A") // Admin
                         {
                             lblUser.Text = Session["UserFullName"].ToString();
                             PopStat();
@@ -93,6 +93,17 @@ namespace DMS
             Page.Controls.Add(lbl);
         }
 
+        protected void cmdViewDocList_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Response.Redirect("DocumentsList.aspx", false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox(ex.Message);
+            }
+        }
 
     }
 }

@@ -122,7 +122,7 @@ namespace DMS
         {
             try
             {
-                if (ddFormType.SelectedValue == "Other")
+                if (ddFormType.SelectedValue == "Non Editable")
                 {
                     divSignFieldNo1.Visible = false;
                     divSignFieldNo2.Visible = false;
@@ -141,7 +141,7 @@ namespace DMS
                     txtTag9FieldNo.Text = "0";
                     txtTag10FieldNo.Text = "0";
                 }
-                else if (ddFormType.SelectedValue == "eForm")
+                else if (ddFormType.SelectedValue == "Editable")
                 {
                     divSignFieldNo1.Visible = true;
                     divSignFieldNo2.Visible = true;
@@ -149,6 +149,25 @@ namespace DMS
                     divSignDateFieldNo1.Visible = true;
                     divSignDateFieldNo2.Visible = true;
                     divSignDateFieldNo3.Visible = true;
+                    txtTag1FieldNo.Text = "0";
+                    txtTag2FieldNo.Text = "0";
+                    txtTag3FieldNo.Text = "0";
+                    txtTag4FieldNo.Text = "0";
+                    txtTag5FieldNo.Text = "0";
+                    txtTag6FieldNo.Text = "0";
+                    txtTag7FieldNo.Text = "0";
+                    txtTag8FieldNo.Text = "0";
+                    txtTag9FieldNo.Text = "0";
+                    txtTag10FieldNo.Text = "0";
+                }
+                else if (ddFormType.SelectedValue == "eForm")
+                {
+                    divSignFieldNo1.Visible = false;
+                    divSignFieldNo2.Visible = false;
+                    divSignFieldNo3.Visible = false;
+                    divSignDateFieldNo1.Visible = false;
+                    divSignDateFieldNo2.Visible = false;
+                    divSignDateFieldNo3.Visible = false;
                     txtTag1FieldNo.Text = "0";
                     txtTag2FieldNo.Text = "0";
                     txtTag3FieldNo.Text = "0";

@@ -45,7 +45,7 @@
         function SetValue() {
             var e = document.getElementById("ctl00_ContentPlaceHolder1_ddFormType");
             var SelectedItem = e.options[e.selectedIndex].value;
-            if (SelectedItem == "Other") {
+            if (SelectedItem == "Non Editable") {
                 if (document.getElementById("<%=txtTag1.ClientID %>").value.trim() == "") {
                     document.getElementById("<%=txtTag1FieldNo.ClientID %>").value = "0";
                 }
@@ -112,7 +112,6 @@
     </script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    
     <div class="main_body">
         <div class="main">
             <div class="normal_common">
@@ -128,9 +127,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -167,9 +165,8 @@
                                         <li><a href="folder_mast.aspx">Folder</a></li>
                                         <li><a href="doc_type_mast.aspx">Document Type</a></li>
                                         <li><a href="BlankTempUpload.aspx">New Template Upload</a></li>
+                                        <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                         <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
-                                        <%--<li><a href="grp_mast.aspx">Groups</a></li>
-                                        <li><a class="nob" href="grp_doc.aspx">Group-wise Document</a></li>--%>
                                     </ul>
                                 </li>
                                 <li class="drop_nav"><a href="#">System</a>
@@ -202,6 +199,7 @@
                                     <li><a href="cabinet_mast.aspx">Cabinet</a></li>
                                     <li><a href="drawer_mast.aspx">Drawer</a></li>
                                     <li><a href="folder_mast.aspx">Folder</a></li>
+                                    <li><a href="eFormCreation.aspx">New eForm Creation</a></li>
                                     <li><a class="nob" href="doc_mast.aspx">New Document Upload</a></li>
                                 </ul>
                                 </li>
@@ -242,7 +240,8 @@
                             <div class="normal_common">
                                 <span class="wf_mas_cap">Form Type</span>
                                 <asp:DropDownList ID="ddFormType" CssClass="wf_det_field2_big" runat="server" AutoPostBack="true" onselectedindexchanged="ddFormType_SelectedIndexChanged">
-                                    <asp:ListItem Value="Other" Text="Other"></asp:ListItem>
+                                    <asp:ListItem Value="Non Editable" Text="Non Editable"></asp:ListItem>
+                                    <asp:ListItem Value="Editable" Text="Editable"></asp:ListItem>
                                     <asp:ListItem Value="eForm" Text="eForm"></asp:ListItem>
                                 </asp:DropDownList>
                                 <span style="padding-left:5px; float:left; font-weight:bold; font-size:24px; color:Red;">*</span>
